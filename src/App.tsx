@@ -317,13 +317,12 @@ function ClaimHeader() {
       <div className="claim-identity">
         <div className="claim-avatar">{claim.employeeInitials}</div>
         <div className="claim-identity-copy">
-          <strong>{claim.employee}</strong>
+          <div className="claimant-name-row"><strong>{claim.employee}</strong><button className="history-trigger" onClick={() => setHistoryOpen(!historyOpen)} aria-expanded={historyOpen}>Maya’s previous claims (4) <CaretDown size={14} /></button></div>
           <div className="claim-reference"><span>Claim {claim.id} · {claim.purpose}</span><button className="copy-button" aria-label="Copy claim ID"><Copy size={15} /></button></div>
           <small>{claim.department} · {claim.office} · {claim.tripDates}</small>
         </div>
-        <button className="history-trigger" onClick={() => setHistoryOpen(!historyOpen)} aria-expanded={historyOpen}>4 previous claims <CaretDown size={14} /></button>
         {historyOpen && <aside className="claimant-history" aria-label="Maya Chen claim history">
-          <div className="claimant-history-head"><div><span className="eyebrow">Claimant history</span><strong>{claim.employee}</strong></div><button className="icon-button" aria-label="Close claimant history" onClick={() => setHistoryOpen(false)}><X size={17} /></button></div>
+          <div className="claimant-history-head"><div><span className="eyebrow">Previous reimbursement claims</span><strong>{claim.employee}</strong></div><button className="icon-button" aria-label="Close claimant history" onClick={() => setHistoryOpen(false)}><X size={17} /></button></div>
           <p>Recent reimbursement claims provide context only; this review applies to {claim.id}.</p>
           <div className="history-list">
             <HistoryRow id="EXP-2719" label="Client dinner · London" amount="€124.00" status="Approved" />
@@ -454,7 +453,7 @@ function WorkspaceScreen(props: WorkspaceProps) {
           <ExpenseSidebar selectedId={props.selectedExpenseId} onSelect={props.onSelectExpense} duplicateAssessment={props.duplicateAssessment} policyAssessment={props.policyAssessment} />
           <section className="evidence-column">
             <div className="evidence-tabs">
-              <div>{(["receipt", "details", "history"] as const).map((item) => <button className={tab === item ? "active" : ""} onClick={() => setTab(item)} key={item}>{item === "receipt" ? "Evidence" : item === "details" ? "Extracted details" : "Audit history"}</button>)}</div>
+              <div>{(["receipt", "details", "history"] as const).map((item) => <button className={tab === item ? "active" : ""} onClick={() => setTab(item)} key={item}>{item === "receipt" ? "Evidence" : item === "details" ? "Extracted details" : "Audit trail"}</button>)}</div>
               <button className="icon-button" aria-label="Download document"><FileArrowDown size={18} /></button>
             </div>
             {tab === "receipt" ? (
@@ -467,7 +466,6 @@ function WorkspaceScreen(props: WorkspaceProps) {
           </section>
           <aside className="review-panel">
             <ProgressSteps reviewed={props.findingsReviewed} />
-            <div className="review-progress"><span>Progress</span><strong>{2 - props.findingsReviewed} {2 - props.findingsReviewed === 1 ? "finding" : "findings"} remaining</strong></div>
             {currentFinding ? (
               <div className="finding-detail">
                 <div className="finding-kicker"><span className={currentAssessment ? "resolved-dot" : "review-dot"} />{currentAssessment ? "Reviewed" : `Finding ${currentFinding === "duplicate" ? "1" : "2"} of 2`}<CaretUp size={15} /></div>
@@ -476,7 +474,7 @@ function WorkspaceScreen(props: WorkspaceProps) {
                   <AssessmentResult assessment={currentAssessment} />
                 ) : currentFinding === "duplicate" ? (
                   <>
-                    <p>AI found a similar hotel expense in Jonas Weber’s claim EXP-2798. Review the matching and conflicting evidence before deciding.</p>
+                    <p>A similar hotel expense was found in Jonas Weber’s claim EXP-2798. Review the matching and conflicting evidence before deciding.</p>
                     <EvidenceMatrix />
                     <button className="primary full" onClick={() => props.onOpenFinding("duplicate")}>Open comparison <ArrowRight size={17} /></button>
                   </>
@@ -545,7 +543,7 @@ function DocumentViewer({ expense, zoom, setZoom, ocr, setOcr }: { expense: Expe
   const [rotation, setRotation] = useState(0);
   return (
     <div className="document-viewer">
-      <div className="document-meta"><div><strong>{expense.document.name}</strong><span>1 of 1 · {expense.document.id}</span></div><span className="document-status"><CheckCircle size={15} weight="fill" /> Document processed</span></div>
+      <div className="document-meta"><div><strong>{expense.document.name}</strong><span>1 of 1 · {expense.document.id}</span></div><span className="document-status"><CheckCircle size={15} weight="fill" /> Data extracted</span></div>
       <div className="viewer-canvas">
         <div className="viewer-toolbar">
           <button onClick={() => setZoom(Math.max(55, zoom - 10))} aria-label="Zoom out"><Minus size={17} /></button><span>{zoom}%</span><button onClick={() => setZoom(Math.min(130, zoom + 10))} aria-label="Zoom in"><Plus size={17} /></button>
@@ -570,11 +568,11 @@ function ExtractedDetails({ expense, onHighlight }: { expense: Expense; onHighli
 }
 
 function AuditTimeline({ events }: { events: AuditEvent[] }) {
-  return <div className="audit-view"><div className="details-heading"><div><h2>Audit history</h2><p>Every system and reviewer action is traceable.</p></div><span>{events.length} events</span></div><div className="timeline">{[...events].reverse().map((event) => <div className="timeline-event" key={event.id}><span className="timeline-dot" /><div><strong>{event.label}</strong><p>{event.detail}</p><small>{event.actor} · {event.timestamp}</small></div></div>)}</div></div>;
+  return <div className="audit-view"><div className="details-heading"><div><h2>Audit trail</h2><p>Every system and reviewer action on this claim is traceable.</p></div><span>{events.length} events</span></div><div className="timeline">{[...events].reverse().map((event) => <div className="timeline-event" key={event.id}><span className="timeline-dot" /><div><strong>{event.label}</strong><p>{event.detail}</p><small>{event.actor} · {event.timestamp}</small></div></div>)}</div></div>;
 }
 
 function EvidenceMatrix() {
-  return <div className="evidence-matrix"><div><span><CheckCircle size={18} /> Matching signals</span><p>Hotel</p><p>Conference dates</p><p>Nightly rate</p></div><div><span><Minus size={18} /> Differences</span><p>Guest</p><p>Room & invoice</p><p>Payment reference</p></div></div>;
+  return <div className="evidence-matrix"><div><span><CheckCircle size={18} /> Matching signals</span><p>Hotel</p><p>Conference dates</p><p>Nightly rate</p></div><div><span><Minus size={18} /> Conflicting signals</span><p>Guest</p><p>Room & invoice</p><p>Payment reference</p></div></div>;
 }
 
 function AssessmentResult({ assessment }: { assessment: ReviewerAssessment }) {
