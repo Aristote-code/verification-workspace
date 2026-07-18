@@ -542,7 +542,7 @@ function DocumentViewer({ expense, zoom, setZoom, ocr, setOcr }: { expense: Expe
           <i /><button onClick={() => setRotation((rotation + 90) % 360)} aria-label="Rotate document"><ArrowClockwise size={17} /></button><button onClick={() => setZoom(92)} aria-label="Fit document"><BoundingBox size={17} /></button><button className={ocr ? "active" : ""} onClick={() => setOcr(!ocr)}><Scan size={17} /> OCR</button>
         </div>
         <div className="document-stage" style={{ width: `${zoom}%` }}>
-          <img src={expense.document.asset} alt={`${expense.merchant} supporting document`} style={{ transform: `rotate(${rotation}deg)` }} />
+          <ReceiptImage asset={expense.document.asset} alt={`${expense.merchant} supporting document`} imageStyle={{ transform: `rotate(${rotation}deg)` }} />
           {ocr && <div className="ocr-overlay" aria-label="OCR highlights"><span className="ocr-box one" /><span className="ocr-box two" /><span className="ocr-box three" /><span className="ocr-box four" /></div>}
         </div>
       </div>
@@ -598,7 +598,15 @@ function ComparisonScreen({ onBack, onResolve, onClarify }: { onBack: () => void
 }
 
 function ComparisonDocument({ label, title, asset, zoom }: { label: string; title: string; asset: string; zoom: number }) {
-  return <section className="comparison-document"><div><span>{label}</span><strong>{title}</strong></div><div className="compare-canvas"><img src={asset} alt={`${label} hotel invoice`} style={{ width: `${zoom}%` }} /></div></section>;
+  return <section className="comparison-document"><div><span>{label}</span><strong>{title}</strong></div><div className="compare-canvas"><ReceiptImage asset={asset} alt={`${label} hotel invoice`} frameStyle={{ width: `${zoom}%` }} /></div></section>;
+}
+
+function ReceiptImage({ asset, alt, frameStyle, imageStyle }: { asset: string; alt: string; frameStyle?: React.CSSProperties; imageStyle?: React.CSSProperties }) {
+  const optimizedAsset = asset.replace(/\.png$/, ".avif");
+  return <picture className="receipt-picture" style={frameStyle}>
+    <source srcSet={optimizedAsset} type="image/avif" />
+    <img src={asset} alt={alt} style={imageStyle} loading="eager" decoding="async" fetchPriority="high" />
+  </picture>;
 }
 
 function CompareRow({ label, current, match = false }: { label: string; current: string; match?: boolean }) {
@@ -613,7 +621,7 @@ function PolicyScreen({ onBack, onResolve, onClarify }: { onBack: () => void; on
       <Rail />
       <div className="screen-content"><TopBar title="Policy exception review" onBack={onBack} />
         <main className="policy-layout">
-          <section className="policy-evidence"><div className="section-heading"><div><span className="eyebrow">Expense 3 of 4</span><h1>The Foundry Kitchen</h1><p>9 May 2026 · Business dinner</p></div><strong>€68.00</strong></div><div className="policy-receipt"><img src="/assets/dinner.png" alt="The Foundry Kitchen receipt" /></div></section>
+          <section className="policy-evidence"><div className="section-heading"><div><span className="eyebrow">Expense 3 of 4</span><h1>The Foundry Kitchen</h1><p>9 May 2026 · Business dinner</p></div><strong>€68.00</strong></div><div className="policy-receipt"><ReceiptImage asset="/assets/dinner.png" alt="The Foundry Kitchen receipt" /></div></section>
           <aside className="policy-panel"><ProgressSteps reviewed={1} /><div className="finding-heading"><h2>Meal allowance exceeded</h2><span className="confidence">94% confidence</span></div><p>The submitted dinner is €18.00 above the applicable international allowance.</p>
             <div className="amount-comparison"><div><span>Submitted</span><strong>€68.00</strong></div><div><span>Policy limit</span><strong>€50.00</strong></div><div><span>Difference</span><strong>+€18.00</strong></div></div>
             <div className="policy-excerpt"><div><FileText size={19} /><strong>{mealPolicy.name}</strong><span>Effective {mealPolicy.effectiveDate}</span></div><p>“{mealPolicy.excerpt}”</p><button className="text-link">View full policy <ArrowRight size={15} /></button></div>

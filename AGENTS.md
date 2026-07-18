@@ -11,3 +11,4 @@ When implementing from a selected generated mock, treat that image as the source
 - The user selected the third generated direction on 2026-07-15.
 - Preserve its editorial evidence-first layout, dark graphite rail, three-step review progress, warm document canvas, ochre review state, cobalt primary action, and minimal elevation.
 - Use the assignment's canonical 8–12 May 2026 trip dates even where the generated concept image rendered different dates.
+- Serve receipt images with AVIF as the preferred format and PNG as a fallback; the evidence canvas must never appear blank while a receipt loads.
