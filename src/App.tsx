@@ -7,7 +7,6 @@ import {
   Bed,
   Bell,
   BoundingBox,
-  Briefcase,
   CalendarBlank,
   CaretDown,
   CaretRight,
@@ -18,7 +17,6 @@ import {
   ClipboardText,
   Clock,
   Copy,
-  CurrencyEur,
   FileArrowDown,
   FileText,
   Flag,
@@ -39,7 +37,6 @@ import {
   SignOut,
   SlidersHorizontal,
   Taxi,
-  User,
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
@@ -314,28 +311,41 @@ function TopBar({ title = "Verification Workspace", onBack }: { title?: string; 
 }
 
 function ClaimHeader() {
+  const [historyOpen, setHistoryOpen] = useState(false);
   return (
     <section className="claim-header">
-      <div className="claim-primary">
-        <span className="eyebrow">Claim</span>
-        <div className="claim-id">{claim.id}<button className="copy-button" aria-label="Copy claim ID"><Copy size={17} /></button></div>
+      <div className="claim-identity">
+        <div className="claim-avatar">{claim.employeeInitials}</div>
+        <div className="claim-identity-copy">
+          <strong>{claim.employee}</strong>
+          <div className="claim-reference"><span>Claim {claim.id} · {claim.purpose}</span><button className="copy-button" aria-label="Copy claim ID"><Copy size={15} /></button></div>
+          <small>{claim.department} · {claim.office} · {claim.tripDates}</small>
+        </div>
+        <button className="history-trigger" onClick={() => setHistoryOpen(!historyOpen)} aria-expanded={historyOpen}>4 previous claims <CaretDown size={14} /></button>
+        {historyOpen && <aside className="claimant-history" aria-label="Maya Chen claim history">
+          <div className="claimant-history-head"><div><span className="eyebrow">Claimant history</span><strong>{claim.employee}</strong></div><button className="icon-button" aria-label="Close claimant history" onClick={() => setHistoryOpen(false)}><X size={17} /></button></div>
+          <p>Recent reimbursement claims provide context only; this review applies to {claim.id}.</p>
+          <div className="history-list">
+            <HistoryRow id="EXP-2719" label="Client dinner · London" amount="€124.00" status="Approved" />
+            <HistoryRow id="EXP-2632" label="Airport transport · Berlin" amount="€54.00" status="Approved" />
+            <HistoryRow id="EXP-2510" label="Training materials" amount="€216.50" status="Approved" />
+            <HistoryRow id="EXP-2448" label="Workshop travel · Paris" amount="€438.00" status="Clarified" />
+          </div>
+        </aside>}
       </div>
-      <HeaderFact icon={User} label={`${claim.employee}, ${claim.department} · ${claim.office}`} />
-      <HeaderFact icon={Briefcase} label={claim.purpose} sublabel={claim.tripDates} />
-      <HeaderFact icon={CurrencyEur} label={money(claim.total)} sublabel="Total requested" reverse />
-      <div className="header-fact status-fact"><span className="eyebrow">Status</span><span className="status-review"><span />Needs review</span></div>
-      <div className="header-fact queue-fact"><span className="eyebrow">Queue position</span><strong>{claim.queuePosition} <small>of {claim.queueTotal}</small></strong></div>
+      <HeaderMetric label="Total requested" value={money(claim.total)} amount />
+      <HeaderMetric label="Status" value="Needs review" status />
+      <HeaderMetric label="Queue position" value={`${claim.queuePosition}`} detail={`of ${claim.queueTotal}`} />
     </section>
   );
 }
 
-function HeaderFact({ icon: Icon, label, sublabel, reverse }: { icon: typeof User; label: string; sublabel?: string; reverse?: boolean }) {
-  return (
-    <div className={`header-fact ${reverse ? "reverse" : ""}`}>
-      <Icon size={22} weight="regular" />
-      <div>{reverse && <span className="eyebrow">{sublabel}</span>}<strong>{label}</strong>{!reverse && sublabel && <small>{sublabel}</small>}</div>
-    </div>
-  );
+function HeaderMetric({ label, value, detail, amount, status }: { label: string; value: string; detail?: string; amount?: boolean; status?: boolean }) {
+  return <div className={`header-metric ${amount ? "amount" : ""} ${status ? "status" : ""}`}><span className="eyebrow">{label}</span><strong>{status && <i />} {value}</strong>{detail && <small>{detail}</small>}</div>;
+}
+
+function HistoryRow({ id, label, amount, status }: { id: string; label: string; amount: string; status: string }) {
+  return <div className="history-row"><div><strong>{id}</strong><span>{label}</span></div><div><strong>{amount}</strong><span>{status}</span></div></div>;
 }
 
 function ProgressSteps({ reviewed = 0, decision = false }: { reviewed?: number; decision?: boolean }) {
@@ -466,7 +476,7 @@ function WorkspaceScreen(props: WorkspaceProps) {
                   <AssessmentResult assessment={currentAssessment} />
                 ) : currentFinding === "duplicate" ? (
                   <>
-                    <p>AI found a similar hotel expense in claim EXP-2798. Review the matching and conflicting evidence before deciding.</p>
+                    <p>AI found a similar hotel expense in Jonas Weber’s claim EXP-2798. Review the matching and conflicting evidence before deciding.</p>
                     <EvidenceMatrix />
                     <button className="primary full" onClick={() => props.onOpenFinding("duplicate")}>Open comparison <ArrowRight size={17} /></button>
                   </>
@@ -581,8 +591,8 @@ function ComparisonScreen({ onBack, onResolve, onClarify }: { onBack: () => void
         <div className="comparison-heading"><div><span className="eyebrow">Claim EXP-2841 · Finding 1 of 2</span><h1>Compare the supporting evidence</h1><p>AI found matching booking signals, but the documents contain important differences.</p></div><span className="confidence">82% confidence</span></div>
         <main className="comparison-layout">
           <div className="comparison-docs">
-            <ComparisonDocument label="Current claim" title="Maya Chen · RGH-847362" asset="/assets/hotel-maya.png" zoom={zoom} />
-            <ComparisonDocument label="Potential match · EXP-2798" title="Jonas Weber · RGH-847351" asset="/assets/hotel-jonas.png" zoom={zoom} />
+            <ComparisonDocument label="Current claim" title="Maya Chen · EXP-2841 · RGH-847362" asset="/assets/hotel-maya.png" zoom={zoom} />
+            <ComparisonDocument label="Potential match" title="Jonas Weber · EXP-2798 · RGH-847351" asset="/assets/hotel-jonas.png" zoom={zoom} />
             <div className="sync-toolbar"><button onClick={() => setZoom(Math.max(45, zoom - 8))}><Minus size={17} /></button><span>{zoom}% · Synchronized zoom</span><button onClick={() => setZoom(Math.min(88, zoom + 8))}><Plus size={17} /></button></div>
           </div>
           <aside className="comparison-summary">

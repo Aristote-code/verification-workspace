@@ -103,7 +103,7 @@ export const claim: Claim = {
       expenseId: "hotel",
       title: "Possible duplicate",
       confidence: 82,
-      summary: "Same hotel, conference dates and nightly rate as claim EXP-2798.",
+      summary: "Same hotel, conference dates and nightly rate as Jonas Weber’s claim EXP-2798.",
       status: "unreviewed",
     },
     {
