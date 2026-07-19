@@ -399,8 +399,8 @@ function QueueScreen({ onOpen }: { onOpen: () => void }) {
                     <td><div className="person-cell"><span>{row.initials}</span><strong>{row.employee}</strong></div></td>
                     <td><strong>{row.id}</strong><small>{row.purpose}</small></td>
                     <td>{row.submitted}</td><td className="amount-cell">{money(row.amount)}</td>
-                    <td><span className={row.ai.includes("passed") ? "ai-passed" : "ai-findings"}>{row.ai}</span></td>
-                    <td><RiskBadge risk={row.risk} /></td><td><span className="status-pill">{row.status}</span></td>
+                    <td><AiReviewBadge value={row.ai} /></td>
+                    <td><RiskBadge risk={row.risk} /></td><td><ClaimStatusBadge status={row.status} /></td>
                     <td>{row.id === claim.id && <button className="open-row" aria-label={`Open ${row.id}`}><ArrowRight size={18} /></button>}</td>
                   </tr>
                 ))}
@@ -414,7 +414,22 @@ function QueueScreen({ onOpen }: { onOpen: () => void }) {
 }
 
 function RiskBadge({ risk }: { risk: string }) {
-  return <span className={`risk-badge ${risk.toLowerCase()}`}><span />{risk}</span>;
+  const Icon = risk === "Low" ? CheckCircle : WarningCircle;
+  return <span className={`queue-pill risk-badge ${risk.toLowerCase()}`}><Icon size={14} weight={risk === "Low" ? "fill" : "regular"} />{risk}</span>;
+}
+
+function AiReviewBadge({ value }: { value: string }) {
+  const passed = value.includes("passed");
+  const responded = value.includes("Response");
+  const Icon = passed ? CheckCircle : responded ? Clock : WarningCircle;
+  return <span className={`queue-pill ai-review ${passed ? "passed" : responded ? "responded" : "findings"}`}><Icon size={14} weight={passed ? "fill" : "regular"} />{value}</span>;
+}
+
+function ClaimStatusBadge({ status }: { status: string }) {
+  const ready = status === "Ready";
+  const responded = status === "Employee responded";
+  const Icon = ready ? CheckCircle : responded ? Clock : WarningCircle;
+  return <span className={`queue-pill claim-status ${ready ? "ready" : responded ? "responded" : "review"}`}><Icon size={14} weight={ready ? "fill" : "regular"} />{status}</span>;
 }
 
 interface WorkspaceProps {
