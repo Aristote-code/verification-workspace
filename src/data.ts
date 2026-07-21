@@ -158,4 +158,11 @@ export const queueClaims = [
   { employee: "Amara Okafor", initials: "AO", id: "EXP-2829", purpose: "Operations offsite", submitted: "12 May", amount: 596.8, ai: "Response received", risk: "Medium", status: "Employee responded" },
   { employee: "Mateo Silva", initials: "MS", id: "EXP-2824", purpose: "Training — Amsterdam", submitted: "11 May", amount: 730, ai: "1 finding", risk: "Medium", status: "Needs review" },
   { employee: "Sofia Rossi", initials: "SR", id: "EXP-2816", purpose: "Field visit — Milan", submitted: "10 May", amount: 412.75, ai: "All checks passed", risk: "Low", status: "Ready" },
+  { employee: "Daniel Weber", initials: "DW", id: "EXP-2812", purpose: "Supplier review — Hamburg", submitted: "10 May", amount: 988.4, ai: "All checks passed", risk: "Low", status: "Ready" },
+  { employee: "Aline Mukiza", initials: "AM", id: "EXP-2807", purpose: "Client entertainment — Brussels", submitted: "9 May", amount: 1450, ai: "4 findings", risk: "High", status: "Needs review" },
+  { employee: "Patrick Niyonzima", initials: "PN", id: "EXP-2803", purpose: "Software licences", submitted: "8 May", amount: 3200, ai: "All checks passed", risk: "Low", status: "Ready" },
+  { employee: "Grace Uwase", initials: "GU", id: "EXP-2799", purpose: "Conference registration", submitted: "8 May", amount: 1850, ai: "2 findings", risk: "Medium", status: "Needs review" },
+  { employee: "Sandra Kamanzi", initials: "SK", id: "EXP-2794", purpose: "Marketing materials", submitted: "7 May", amount: 520, ai: "1 finding", risk: "Medium", status: "Needs review" },
+  { employee: "Robert Nsengimana", initials: "RN", id: "EXP-2788", purpose: "Office renovation", submitted: "7 May", amount: 1100, ai: "All checks passed", risk: "Low", status: "Ready" },
+  { employee: "Marie Ingabire", initials: "MI", id: "EXP-2781", purpose: "Training workshop", submitted: "6 May", amount: 2750, ai: "Response received", risk: "Medium", status: "Employee responded" },
 ];
