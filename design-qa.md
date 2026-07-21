@@ -1,10 +1,6 @@
 # Design QA — Verification Workspace
 
-- Source visual truth: `reference/selected-direction.png`
-- Browser-rendered implementation: `qa-workspace-final.png`
-- Full-view comparison: `qa-comparison-final.png`
-- Focused header comparison: `qa-focus-header.png`
-- Focused review-panel comparison: `qa-focus-review-panel.png`
+- Source visual truth: polished Figma queue `6005:2556` and claim workspace `6037:12225`
 - Viewport: 1440 × 1024 desktop
 - State: Claim `EXP-2841`, Riverside Grand Hotel selected, two findings unreviewed
 
@@ -12,9 +8,9 @@
 
 No actionable P0, P1, or P2 differences remain.
 
-- Fonts and typography: Geist and Geist Mono reproduce the source's condensed operational hierarchy, tabular financial values, compact labels, and restrained weights. The final header check confirms that employee, purpose, total, and queue text do not clip.
-- Spacing and layout rhythm: the graphite rail, claim briefing band, expense index, dominant evidence canvas, review stepper, and persistent decision area preserve the source composition. The implementation adds a slim evidence-tab row to support the required document details and audit history without changing the major-region hierarchy.
-- Colors and visual tokens: warm white, mineral gray, graphite, cobalt, sage, ochre, and destructive red map closely to the selected direction. Semantic states are also reinforced with icons and text.
+- Fonts and typography: Inter is the available web-safe approximation for Certia; Geist Mono remains reserved for financial values. The compact hierarchy, labels, and restrained weights match the polished Figma screens without clipping.
+- Spacing and layout rhythm: the 62px light rail, compact 50px queue rows, reduced claim briefing band, dominant evidence canvas, review stepper, and persistent decision area preserve the new Figma composition.
+- Colors and visual tokens: white surfaces, #EBEBEB borders, #335CFF interactions, semantic green/amber/red pills, and minimal shadows map directly to the polished Figma direction. Status meaning is reinforced with icons and text.
 - Image quality and asset fidelity: the app uses generated high-resolution raster evidence for the current hotel invoice, matched hotel invoice, dinner receipt, taxi receipt, and flight ticket. No document or non-standard visible asset is replaced by CSS art, emoji, or a placeholder.
 - Copy and content: claim data follows the approved scenario. The implementation intentionally corrects the concept image's generated dates to the canonical 8–12 May 2026 trip window.
 
@@ -40,14 +36,14 @@ Evidence: `qa-comparison-final.png`, `qa-focus-header.png`, and `qa-focus-review
 
 ## Interaction and Browser Verification
 
-- Opened Maya Chen's claim from the six-row queue.
+- Opened Maya Chen's claim from the compact thirteen-row queue.
 - Verified queue search returns the expected single result for “Maya”.
 - Opened the duplicate comparison, selected a required dismissal reason, and confirmed the audit-trail update.
 - Applied the €50 policy limit and confirmed the reimbursement recalculated to €1,230.
 - Verified approval remains disabled until both findings are reviewed and the reviewer acknowledgement is checked.
 - Completed approval and confirmed the decision-complete state.
 - Reloaded and completed the clarification branch through its awaiting-response state.
-- Verified 1280 × 800 has no body-level horizontal overflow.
+- Verified both 1440 × 1024 and 1280 × 800 layouts. The evidence, finding actions, and sticky decision controls remain visible without body-level horizontal overflow.
 - Browser console warnings/errors: none.
 - TypeScript check and production build: passed.
 

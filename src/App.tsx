@@ -11,7 +11,6 @@ import {
   CaretDown,
   CaretRight,
   CaretUp,
-  ChartBar,
   Check,
   CheckCircle,
   ClipboardText,
@@ -19,12 +18,10 @@ import {
   Copy,
   FileArrowDown,
   FileText,
-  Flag,
   ForkKnife,
   Funnel,
-  Gear,
+  House,
   Info,
-  ListChecks,
   MagnifyingGlass,
   Minus,
   NotePencil,
@@ -34,7 +31,6 @@ import {
   Scan,
   SealCheck,
   ShieldCheck,
-  SignOut,
   SlidersHorizontal,
   Taxi,
   WarningCircle,
@@ -263,15 +259,11 @@ export function App() {
   );
 }
 
-function Rail({ active = "workspace", onQueue }: { active?: string; onQueue?: () => void }) {
+function Rail({ active = "claims", onQueue }: { active?: string; onQueue?: () => void }) {
   const items = [
-    { id: "workspace", label: "Workspace", icon: ClipboardText },
+    { id: "home", label: "Home", icon: House },
+    { id: "claims", label: "Claims", icon: ClipboardText },
     { id: "search", label: "Search", icon: MagnifyingGlass },
-    { id: "checks", label: "My reviews", icon: ListChecks },
-    { id: "flag", label: "Clarifications", icon: Flag },
-    { id: "files", label: "Documents", icon: FileText },
-    { id: "reports", label: "Reports", icon: ChartBar },
-    { id: "settings", label: "Settings", icon: Gear },
   ];
   return (
     <aside className="rail" aria-label="Primary navigation">
@@ -285,27 +277,25 @@ function Rail({ active = "workspace", onQueue }: { active?: string; onQueue?: ()
           </button>
         ))}
       </nav>
-      <div className="rail-bottom">
-        <button aria-label="Sign out" title="Sign out"><SignOut size={23} /></button>
-        <button aria-label="Collapse navigation" title="Collapse navigation"><CaretRight size={22} /></button>
-      </div>
+      <div className="rail-bottom"><button className="rail-profile" aria-label="Olivia Harper profile" title="Olivia Harper">OH</button></div>
     </aside>
   );
 }
 
-function TopBar({ title = "Verification Workspace", onBack }: { title?: string; onBack?: () => void }) {
+function TopBar({ title = "Verification Workspace", onBack, claimNavigator = false }: { title?: string; onBack?: () => void; claimNavigator?: boolean }) {
   return (
-    <header className="topbar">
+    <header className={`topbar ${claimNavigator ? "claim-navigator" : ""}`}>
       <div className="topbar-title">
         {onBack && <button className="icon-button" onClick={onBack} aria-label="Go back"><ArrowLeft size={19} /></button>}
+        {claimNavigator && <><button className="icon-button" aria-label="Previous claim"><CaretUp size={16} /></button><button className="icon-button" aria-label="Next claim"><CaretDown size={16} /></button></>}
         <span>{title}</span>
       </div>
-      <div className="topbar-actions">
+      {!claimNavigator && <div className="topbar-actions">
         <button className="text-button muted"><CalendarBlank size={18} /> Jul 15, 2026</button>
         <button className="icon-button" aria-label="Notifications"><Bell size={19} /></button>
         <button className="avatar" aria-label="Olivia Harper profile">OH</button>
         <CaretDown size={15} />
-      </div>
+      </div>}
     </header>
   );
 }
@@ -333,8 +323,6 @@ function ClaimHeader() {
         </aside>}
       </div>
       <HeaderMetric label="Total requested" value={money(claim.total)} amount />
-      <HeaderMetric label="Status" value="Needs review" status />
-      <HeaderMetric label="Queue position" value={`${claim.queuePosition}`} detail={`of ${claim.queueTotal}`} />
     </section>
   );
 }
@@ -376,32 +364,28 @@ function QueueScreen({ onOpen }: { onOpen: () => void }) {
 
   return (
     <div className="screen-frame queue-frame">
-      <Rail active="workspace" />
+      <Rail active="claims" />
       <div className="screen-content">
-        <TopBar />
         <main className="queue-page">
           <div className="queue-heading">
-            <div><span className="eyebrow">Operations</span><h1>Verification queue</h1><p>Review the claims that need human judgment.</p></div>
-            <div className="queue-summary"><strong>138</strong><span>awaiting review</span><i /><strong>23</strong><span>completed today</span></div>
+            <div><h1>Verification Queue</h1><p>Review and verify employee expense claims.</p></div>
+            <div className="queue-summary"><strong>138</strong><span>Claims awaiting</span><i /><strong>23</strong><span>Claims completed</span></div>
           </div>
           <div className="queue-toolbar">
-            <label className="search-field"><MagnifyingGlass size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search employee, claim or purpose" /></label>
+            <label className="search-field"><MagnifyingGlass size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Claims" /><span className="search-shortcut">⌘ P</span></label>
             <label className="select-field"><SlidersHorizontal size={17} /><select value={status} onChange={(event) => setStatus(event.target.value)}><option>All statuses</option><option>Needs review</option><option>Ready</option><option>Employee responded</option></select></label>
             <label className="select-field"><Funnel size={17} /><select value={risk} onChange={(event) => setRisk(event.target.value)}><option>All risk</option><option>Low</option><option>Medium</option><option>High</option></select></label>
-            <span className="result-count">{filtered.length} claims</span>
           </div>
           <div className="queue-table-wrap">
             <table className="queue-table">
-              <thead><tr><th>Employee</th><th>Claim</th><th>Submitted</th><th><button onClick={() => setSortAscending(!sortAscending)}>Amount <CaretDown size={13} /></button></th><th>AI review</th><th>Risk</th><th>Status</th><th /></tr></thead>
+              <thead><tr><th>Employee</th><th>Claim</th><th>Submitted</th><th><button onClick={() => setSortAscending(!sortAscending)}>Amount <CaretDown size={13} /></button></th><th>AI review</th><th>Status</th></tr></thead>
               <tbody>
                 {filtered.map((row) => (
                   <tr key={row.id} className={row.id === claim.id ? "featured" : ""} onClick={row.id === claim.id ? onOpen : undefined} tabIndex={row.id === claim.id ? 0 : undefined} onKeyDown={(event) => event.key === "Enter" && row.id === claim.id && onOpen()}>
                     <td><div className="person-cell"><span>{row.initials}</span><strong>{row.employee}</strong></div></td>
                     <td><strong>{row.id}</strong><small>{row.purpose}</small></td>
                     <td>{row.submitted}</td><td className="amount-cell">{money(row.amount)}</td>
-                    <td><AiReviewBadge value={row.ai} /></td>
-                    <td><RiskBadge risk={row.risk} /></td><td><ClaimStatusBadge status={row.status} /></td>
-                    <td>{row.id === claim.id && <button className="open-row" aria-label={`Open ${row.id}`}><ArrowRight size={18} /></button>}</td>
+                    <td><AiReviewBadge value={row.ai} /></td><td><ClaimStatusBadge status={row.status} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -411,11 +395,6 @@ function QueueScreen({ onOpen }: { onOpen: () => void }) {
       </div>
     </div>
   );
-}
-
-function RiskBadge({ risk }: { risk: string }) {
-  const Icon = risk === "Low" ? CheckCircle : WarningCircle;
-  return <span className={`queue-pill risk-badge ${risk.toLowerCase()}`}><Icon size={14} weight={risk === "Low" ? "fill" : "regular"} />{risk}</span>;
 }
 
 function AiReviewBadge({ value }: { value: string }) {
@@ -462,7 +441,7 @@ function WorkspaceScreen(props: WorkspaceProps) {
     <div className="screen-frame">
       <Rail onQueue={props.onBackQueue} />
       <div className="screen-content">
-        <TopBar />
+        <TopBar title={`${claim.queuePosition - 1} of ${claim.queueTotal} claims`} onBack={props.onBackQueue} claimNavigator />
         <ClaimHeader />
         <main className="workspace-grid">
           <ExpenseSidebar selectedId={props.selectedExpenseId} onSelect={props.onSelectExpense} duplicateAssessment={props.duplicateAssessment} policyAssessment={props.policyAssessment} />
@@ -513,9 +492,9 @@ function WorkspaceScreen(props: WorkspaceProps) {
             <button className="accordion-row" onClick={() => setPassedOpen(!passedOpen)}><span><CheckCircle size={18} /> Passed checks</span><span>6 {passedOpen ? <CaretUp size={14} /> : <CaretDown size={14} />}</span></button>
             {passedOpen && <div className="passed-list"><span><Check size={14} /> Identity matched</span><span><Check size={14} /> Currency identified</span><span><Check size={14} /> Dates within trip</span><span><Check size={14} /> Documents legible</span><span><Check size={14} /> Merchant extracted</span><span><Check size={14} /> Totals matched</span></div>}
             <div className="review-actions">
-              <button className="primary" disabled={!props.readyForDecision} onClick={props.onDecision}>{props.readyForDecision ? "Review final decision" : "Approve"}</button>
+              <button className="primary approve-action" disabled={!props.readyForDecision} onClick={props.onDecision}>{props.readyForDecision ? "Review final decision" : "Approve Claim"}</button>
               <button className="secondary" onClick={props.onClarify}>Request clarification</button>
-              <button className="secondary danger" onClick={props.onReject}>Reject</button>
+              <button className="secondary danger reject-action" onClick={props.onReject}>Reject Claim</button>
               <button className="text-button" onClick={props.onAddNote}><NotePencil size={17} /> Add internal note</button>
               <p><ShieldCheck size={16} /> You are responsible for the final decision.</p>
             </div>
