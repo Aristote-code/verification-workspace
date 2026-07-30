@@ -60,7 +60,8 @@ The exported references live in `figma-reference/`. Final same-size comparisons 
 ### Buttons
 
 - Implemented the AlignUI Fancy Button v1.2 anatomy used by the Figma design.
-- Matched the white outer border, inner highlight, exact blue/red/green gradients, one-pixel keyline, drop shadows, 10 px radius, 40 px action height, pressed state, and focus state.
+- Matched AlignUI's resting surfaces, inner highlight, one-pixel color keyline, subtle drop shadow, 10 px radius, 40 px action height, and focus state.
+- Removed the old white outer border, inset/depressed shadow, and translated active position that made the buttons appear permanently clicked.
 - Corrected the approved-state primary action to the Figma 50 px height.
 
 ### Approved state
@@ -171,6 +172,32 @@ Source: Figma node `6144:4474`.
 
 **Final result: passed.**
 
+## Compact final-reimbursement modal
+
+- Reworked Final Decision Review to use the same 780 px header/body/footer structure as Request Clarification.
+- Removed the internal review-progress component and “Ready for your decision” eyebrow.
+- Promoted “Review the final reimbursement” and the assessment subtitle into the modal header.
+- Kept Review results as the first content section.
+- Moved Reimbursement beneath the results and placed Submitted and Excluded in two equal side-by-side columns.
+- Kept Final reimbursement, the employee notification, reviewer acknowledgement, and all three footer actions.
+- Verified the modal at 780 px, confirmed there is no progress component inside it, and measured equal 366 px reimbursement columns.
+- Confirmed checking the acknowledgement enables the approval action.
+- Production typecheck/build passes.
+
+**Final result: passed.**
+
+## AlignUI Fancy Button v1.2 integration
+
+- Replaced the local approximation with the official AlignUI namespace API at `@/components/ui/fancy-button`.
+- Added AlignUI's required Radix Slot, Tailwind Variants, class-merging, polymorphic, and recursive-child utilities.
+- Preserved the documented `Root`/`Icon` composition, `asChild`, neutral/primary/destructive/basic variants, medium/small/xsmall sizes, filled highlight layers, disabled behavior, and inherited icon sizing.
+- Added one controlled `success` extension for reimbursement actions using AlignUI's official success token; it shares the exact AlignUI component anatomy and interaction states.
+- Confirmed every standalone CTA across evidence, extracted details, audit trail, policy, comparison, clarification, final decision, and approval states renders with `data-alignui="fancy-button"`.
+- Verified the composed “Review next claim” icon inherits the root's medium sizing.
+- Checked all audited desktop states at 1280 px with no horizontal overflow.
+
+**Final result: passed.**
+
 ## Comparison identity-chip alignment
 
 - Reserved a stable label column and a flexible value column in the comparison facts panel.
@@ -231,11 +258,11 @@ Source: Figma node `6144:4474`.
 
 - Fetched the exact design context, screenshot, and node measurements from Figma node `6144:4748`.
 - Matched the three equal-width 40 px controls with 15 px gaps and 10 px corner radii.
-- Matched neutral styling exactly: white fill, `#E2E4E9` border, `#525866` text, and `0 1px 2px #5258660F` shadow.
-- Matched Reject Claim exactly: `#DF1C41` base, 12% white vertical highlight, white border, `#E93535` one-pixel ring, and `0 1px 2px #AF1D1D7A` shadow.
-- Matched Approve Claim exactly: `#1DAF61` base and ring, 12% white vertical highlight, white border, and `0 1px 2px #1DAF617A` shadow.
-- Removed the duplicated pseudo-element highlight that had been washing out the red and green fills.
-- Confirmed rendered values in-browser at `1567 × 964`: 40 px height, 110 px equal widths, 4 px content gap, 14 px medium text, 20 px line height, and `-0.084px` letter spacing.
+- The later AlignUI-specific request supersedes the original Figma paint while retaining this footer geometry.
+- Resting values now match the live AlignUI v1.2 component: primary `#335CFF`, destructive `#FB3748`, basic `#FFFFFF`, 1 px same-color/soft-neutral keylines, and subtle non-inset shadows.
+- Approval extends the same construction with AlignUI success `#1FC16B`.
+- Removed the white exterior border, heavy colored ring, inset shadow, and active translation that made the controls look clicked before interaction.
+- Confirmed rendered values in-browser at `1545 × 964`: 40 px height, 10 px corners, 14 px medium text, 20 px line height, no border, no transform, and no inset shadow.
 - Production typecheck/build passes. Reference and implementation captures are stored in `figma-reference/button-6144-4748/` and `qa/figma-6144-4748/`.
 
 **Final result: passed.**

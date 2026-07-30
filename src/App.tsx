@@ -34,7 +34,7 @@ import {
   UserGroupIcon,
   UserIcon,
 } from "@hugeicons/core-free-icons";
-import { FancyButton } from "./components/FancyButton";
+import * as FancyButton from "@/components/ui/fancy-button";
 import { Icon, type IconData } from "./components/Icon";
 
 type IconProps = { size?: number; weight?: string; className?: string };
@@ -947,35 +947,34 @@ function DecisionModal({ onBack, onApprove, onReject }: { onBack: () => void; on
   return (
     <div className="overlay decision-overlay">
       <section className="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-title">
-        <button className="clarification-close decision-close" aria-label="Close final decision review" onClick={onBack}><X size={20} /></button>
-        <div className="decision-modal-body">
-        <header className="decision-intro">
-          <Progress stage="decision" />
-          <span className="flow-eyebrow">Ready for your decision</span>
-          <h1 id="decision-title">Review the final reimbursement</h1>
-          <p>Both findings have been assessed. Confirm the evidence and outcome before recording a decision.</p>
+        <header className="decision-modal-header">
+          <div className="clarification-heading">
+            <h1 id="decision-title">Review the final reimbursement</h1>
+            <p>Both findings have been assessed. Confirm the evidence and outcome before recording a decision.</p>
+          </div>
+          <button className="clarification-close" aria-label="Close final decision review" onClick={onBack}><X size={20} /></button>
         </header>
-        <div className="decision-layout">
+        <div className="decision-modal-body">
           <section className="decision-results">
             <h2>Review results</h2>
             <DecisionResult icon="copy" title="Possible duplicate" detail="Different guests, invoice numbers, rooms, and payment references" result="Not a duplicate" />
             <DecisionResult icon="receipt" title="Policy exception" detail="RWF 70,000 reimbursable · RWF 25,200 excluded" result="Policy limit applied" />
             <DecisionResult icon="check-square" title="Automated checks" detail="Identity, dates, currency, document quality, merchant, and totals" result="6 checks passed" passed />
           </section>
-          <aside className="reimbursement-summary">
-            <span className="flow-eyebrow">Reimbursement</span>
-            <div><span>Submitted</span><strong>RWF&nbsp; 1,747,200</strong></div>
-            <div><span>Excluded</span><strong className="negative">−RWF&nbsp; 25,200</strong></div>
-            <i />
+          <section className="reimbursement-summary">
+            <h2>Reimbursement</h2>
+            <div className="reimbursement-metrics">
+              <div><span>Submitted</span><strong>RWF&nbsp; 1,747,200</strong></div>
+              <div><span>Excluded</span><strong className="negative">−RWF&nbsp; 25,200</strong></div>
+            </div>
             <div className="final-total"><span>Final reimbursement</span><strong>RWF&nbsp; 1,722,000</strong></div>
             <p><Info size={16} /> Jean-Paul will be notified of the policy adjustment.</p>
-          </aside>
-        </div>
-        <label className="decision-acknowledgement">
-          <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />
-          <i>{acknowledged && <Check size={13} />}</i>
-          <span>I have reviewed the supporting evidence and AI findings and am making this decision based on the available information.</span>
-        </label>
+          </section>
+          <label className="decision-acknowledgement">
+            <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />
+            <i>{acknowledged && <Check size={13} />}</i>
+            <span>I have reviewed the supporting evidence and AI findings and am making this decision based on the available information.</span>
+          </label>
         </div>
         <footer className="decision-actions">
           <FancyButton.Root variant="destructive" onClick={onReject}>Reject claim</FancyButton.Root>
