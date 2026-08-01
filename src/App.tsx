@@ -495,7 +495,7 @@ function ExtractedDetails({ expense }: { expense: ExpenseId }) {
       <div className="details-content">
         <h2>Extracted details</h2>
         {expense === "hotel" && <>
-          <DetailRow icon={Bed} label="Hotel" value={<span>Riverside Grand Hotel</span>} />
+          <DetailRow icon="detail-hotel" label="Hotel" value={<span>Riverside Grand Hotel</span>} />
           <DetailRow icon="detail-calendar" label="Stay dates" value={<mark>8–10 May 2026</mark>} />
           <DetailRow icon="detail-card" label="Nightly rate" value={<span>RWF 546,000</span>} />
           <DetailRow icon="detail-user" label="Guest" value={<><mark className="blue"><i className="chip-avatar maya">J</i>Jean-Paul</mark><mark className="violet"><i className="chip-avatar jonas">J</i>Jonas W.</mark></>} />

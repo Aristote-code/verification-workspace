@@ -266,3 +266,14 @@ Source: Figma node `6144:4474`.
 - Production typecheck/build passes. Reference and implementation captures are stored in `figma-reference/button-6144-4748/` and `qa/figma-6144-4748/`.
 
 **Final result: passed.**
+
+## Extracted-details Hotel/Stay-dates icon mismatch
+
+- The Hotel row in the main "Extracted details" panel rendered the live Hugeicons `BedDoubleIcon` component, which inherits `currentColor` and rendered darker/heavier than its sibling rows (Stay dates, Nightly rate, Guest, Room, Invoice, Payment reference), which all use the exported `detail-*` SVGs fixed at `#9C9C9C`, 1.5 px stroke.
+- Confirmed against Figma node `6144:4474` (source of truth) that Hotel and Stay dates use the same monochrome stroke weight and the same bordered `#f6f7fa` icon chip — the mismatch was implementation-only.
+- Switched the Hotel row to the existing `detail-hotel.svg` export (already present in `public/figma/icons/`, unused until now), matching its siblings' style exactly.
+- Left the Hugeicons `BedDoubleIcon` usage in expense rows, the matching-signals list, and the duplicate-comparison facts panel untouched — those contexts intentionally use Hugeicons per `AGENTS.md`.
+- **Follow-up:** the `detail-hotel.svg` export itself turned out to be upside down — it was exported as the raw pre-transform Figma asset without the `rotate(180deg) scaleX(-1)` (net: vertical flip) that Figma's own `bed-double` instance (node `6144:4374`) applies on canvas. Confirmed by rendering the actual Figma node screenshot: arched double-headboard-with-pillows at top, plain frame/legs at bottom. Baked the equivalent `translate(0,13.5) scale(1,-1)` flip directly into the SVG's `<g id="elements">` so the file is self-contained and matches Figma without relying on a CSS transform.
+- Production typecheck/build passes. Verified in-browser: Hotel and Stay dates rows now render at identical stroke weight and color, and the bed glyph is right-side up and matches the Figma screenshot exactly.
+
+**Final result: passed.**
