@@ -433,6 +433,24 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
 .flow-field { display: flex; flex-direction: column; gap: 8px; color: #4c5158; font-size: 12px; line-height: 15px; font-weight: 600; }
 .flow-field input, .flow-field textarea, .flow-field select { width: 100%; color: #33373d; border: 1px solid #dfe1e4; border-radius: 8px; background: #fff; outline: none; font-family: "Certia", Inter, sans-serif; font-size: 13px; font-weight: 400; }
 .flow-field input:focus, .flow-field textarea:focus, .flow-field select:focus { border-color: #7891ff; box-shadow: 0 0 0 3px #375dfb18; }
+
+/* AlignUI Select v1.2 anatomy, rendered with the Zemo token palette. */
+.align-select-trigger { width: 100%; height: 40px; min-width: 0; padding: 0 10px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #33373d; border: 0; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(20, 24, 31, .04), inset 0 0 0 1px #dfe1e4; outline: none; font-family: "Certia", Inter, sans-serif; font-size: 13px; line-height: 20px; font-weight: 400; text-align: left; transition: background .2s ease, box-shadow .2s ease, color .2s ease; }
+.align-select-trigger:hover { background: #f8f9fb; box-shadow: 0 1px 2px rgba(20, 24, 31, 0); }
+.align-select-trigger:focus-visible, .align-select-trigger[data-state="open"] { color: #24282d; background: #fff; box-shadow: 0 0 0 1px #1f252c, 0 0 0 4px rgba(55, 93, 251, .13); }
+.align-select-trigger[data-placeholder] { color: #747981; }
+.align-select-arrow { flex: none; color: #8b9198; transition: transform .2s ease, color .2s ease; }
+.align-select-trigger:hover .align-select-arrow, .align-select-trigger[data-state="open"] .align-select-arrow { color: #24282d; }
+.align-select-trigger[data-state="open"] .align-select-arrow { transform: rotate(180deg); }
+.align-select-content { z-index: 180; min-width: var(--radix-select-trigger-width); max-width: max(var(--radix-select-trigger-width), 320px); max-height: var(--radix-select-content-available-height); overflow: hidden; border-radius: 14px; background: #fff; box-shadow: 0 16px 40px rgba(24, 31, 45, .16), inset 0 0 0 1px #dfe1e4; transform-origin: var(--radix-select-content-transform-origin); animation: align-select-in .18s ease-out; }
+.align-select-viewport { max-height: 196px; width: 100%; padding: 8px; overflow-y: auto; }
+.align-select-item { position: relative; min-height: 38px; padding: 9px 38px 9px 10px; display: flex; align-items: center; color: #24282d; border-radius: 8px; outline: none; font-family: "Certia", Inter, sans-serif; font-size: 13px; line-height: 19px; font-weight: 400; cursor: pointer; user-select: none; transition: background .16s ease, color .16s ease; }
+.align-select-item[data-highlighted] { background: #f2f4f7; }
+.align-select-item[data-state="checked"] { color: #2f55e7; background: #f4f6ff; }
+.align-select-item-indicator { position: absolute; right: 10px; top: 50%; display: grid; place-items: center; color: #375dfb; transform: translateY(-50%); }
+.align-select-scrollbar { width: 8px; padding: 2px; }
+.align-select-thumb { width: 4px; border-radius: 999px; background: #d8dade; }
+@keyframes align-select-in { from { opacity: 0; transform: scale(.96) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .clarification-message { min-height: 0; flex: 1; }
 .clarification-message textarea { min-height: 190px; height: 100%; padding: 13px 14px; resize: none; line-height: 1.55; }
 .composer-controls { display: grid; grid-template-columns: 220px 1fr; align-items: end; gap: 12px; }
@@ -494,7 +512,6 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
 .reject-body { padding: 22px 24px 8px; }
 .reject-body > p { margin: 0 0 20px; color: #747981; font-size: 12px; line-height: 18px; }
 .reject-body .flow-field { margin-bottom: 17px; }
-.reject-body select { height: 40px; padding: 0 12px; }
 .reject-body textarea { min-height: 112px; padding: 12px; resize: vertical; line-height: 1.5; }
 .reject-modal > footer { min-height: 76px; padding: 17px 24px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e2e3e4; }
 

@@ -35,6 +35,7 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import * as FancyButton from "@/components/ui/fancy-button";
+import * as Select from "@/components/ui/select";
 import { Icon, type IconData } from "./components/Icon";
 
 type IconProps = { size?: number; weight?: string; className?: string };
@@ -1007,13 +1008,17 @@ function RejectOverlay({ onClose, onDone }: { onClose: () => void; onDone: () =>
           <p>Jean-Paul will see the rejection reason. The internal note remains visible only to reviewers.</p>
           <label className="flow-field">
             <span>Rejection reason</span>
-            <select value={reason} onChange={(event) => setReason(event.target.value)}>
-              <option value="">Select a reason</option>
-              <option>Confirmed duplicate expense</option>
-              <option>Unsupported business purpose</option>
-              <option>Expense outside company policy</option>
-              <option>Insufficient evidence</option>
-            </select>
+            <Select.Root value={reason} onValueChange={setReason}>
+              <Select.Trigger aria-label="Rejection reason">
+                <Select.Value placeholder="Select a reason" />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="Confirmed duplicate expense">Confirmed duplicate expense</Select.Item>
+                <Select.Item value="Unsupported business purpose">Unsupported business purpose</Select.Item>
+                <Select.Item value="Expense outside company policy">Expense outside company policy</Select.Item>
+                <Select.Item value="Insufficient evidence">Insufficient evidence</Select.Item>
+              </Select.Content>
+            </Select.Root>
           </label>
           <label className="flow-field"><span>Internal note</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add the evidence behind this decision" /></label>
         </div>
