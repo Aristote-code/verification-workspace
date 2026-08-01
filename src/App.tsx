@@ -4,12 +4,12 @@ import {
   AiScanIcon,
   ArrowLeft02Icon,
   ArrowRight01Icon,
-  ArrowUp02Icon,
   BedDoubleIcon,
   Calendar01Icon,
   Cancel01Icon,
   CheckIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
   Copy01Icon,
   CreditCardIcon,
   Exchange01Icon,
@@ -28,7 +28,6 @@ import {
   RotateRight01Icon,
   Search01Icon,
   SlidersHorizontalIcon,
-  SquareArrowDown01Icon,
   TaxiIcon,
   Ticket01Icon,
   UserGroupIcon,
@@ -75,7 +74,7 @@ const Bed = iconComponent(BedDoubleIcon);
 const CalendarBlank = iconComponent(Calendar01Icon);
 const CaretDown = iconComponent(ChevronDownIcon);
 const CaretRight = iconComponent(ArrowRight01Icon);
-const CaretUp = iconComponent(ArrowUp02Icon);
+const CaretUp = iconComponent(ChevronUpIcon);
 const Check = iconComponent(CheckIcon);
 const ClipboardText = iconComponent(Ticket01Icon);
 const Copy = iconComponent(Copy01Icon);
@@ -91,7 +90,6 @@ const Minus = iconComponent(MinusSignIcon);
 const Plus = iconComponent(PlusSignIcon);
 const Scales = iconComponent(JusticeScale01Icon);
 const SlidersHorizontal = iconComponent(SlidersHorizontalIcon);
-const SquareArrowDown = iconComponent(SquareArrowDown01Icon);
 const Taxi = iconComponent(TaxiIcon);
 const User = iconComponent(UserIcon);
 const Users = iconComponent(UserGroupIcon);
@@ -402,10 +400,10 @@ function ClaimHeader({ onBack }: { onBack: () => void }) {
     <header className="review-header">
       <div className="claim-nav">
         <div className="claim-controls">
-          <button onClick={onBack} aria-label="Back"><ArrowLeft size={14} /></button>
+          <button onClick={onBack} aria-label="Back"><ArrowLeft size={16} /></button>
           <span className="nav-pair">
-            <button aria-label="Previous claim"><SquareArrowDown className="rotate-180" size={14} /></button>
-            <button aria-label="Next claim"><SquareArrowDown size={14} /></button>
+            <button aria-label="Previous claim"><CaretUp size={16} /></button>
+            <button aria-label="Next claim"><CaretDown size={16} /></button>
           </span>
         </div>
         <span>23 of 138 claims</span>
