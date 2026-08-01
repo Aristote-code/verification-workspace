@@ -2,7 +2,7 @@
 import * as React from "react";
 import * as ScrollAreaPrimitives from "@radix-ui/react-scroll-area";
 import * as SelectPrimitives from "@radix-ui/react-select";
-import { ArrowDown02Icon, CheckIcon } from "@hugeicons/core-free-icons";
+import { CheckIcon, ChevronDownIcon } from "@hugeicons/core-free-icons";
 
 import { Icon } from "@/components/Icon";
 
@@ -20,7 +20,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitives.Icon asChild>
-      <Icon icon={ArrowDown02Icon} size={16} className="align-select-arrow" />
+      <Icon icon={ChevronDownIcon} size={16} className="align-select-arrow" />
     </SelectPrimitives.Icon>
   </SelectPrimitives.Trigger>
 ));

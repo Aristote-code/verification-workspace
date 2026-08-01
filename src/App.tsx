@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AirplaneTakeOff01Icon,
   AiScanIcon,
-  ArrowDown02Icon,
   ArrowLeft02Icon,
   ArrowRight01Icon,
   ArrowUp02Icon,
@@ -10,6 +9,7 @@ import {
   Calendar01Icon,
   Cancel01Icon,
   CheckIcon,
+  ChevronDownIcon,
   Copy01Icon,
   CreditCardIcon,
   Exchange01Icon,
@@ -35,6 +35,7 @@ import {
   UserIcon,
 } from "@hugeicons/core-free-icons";
 import * as FancyButton from "@/components/ui/fancy-button";
+import * as Dropdown from "@/components/ui/dropdown";
 import * as Select from "@/components/ui/select";
 import { Icon, type IconData } from "./components/Icon";
 
@@ -72,7 +73,7 @@ const AirplaneTilt = iconComponent(AirplaneTakeOff01Icon);
 const ArrowLeft = iconComponent(ArrowLeft02Icon);
 const Bed = iconComponent(BedDoubleIcon);
 const CalendarBlank = iconComponent(Calendar01Icon);
-const CaretDown = iconComponent(ArrowDown02Icon);
+const CaretDown = iconComponent(ChevronDownIcon);
 const CaretRight = iconComponent(ArrowRight01Icon);
 const CaretUp = iconComponent(ArrowUp02Icon);
 const Check = iconComponent(CheckIcon);
@@ -847,7 +848,6 @@ function ClarificationModal({ onClose, onReturn }: { onClose: () => void; onRetu
               options={["Possible duplicate", "Policy exception", "Missing document", "Expense purpose unclear", "Amount mismatch"]}
               selected={reasons}
               onToggle={(item) => toggle(item, reasons, setReasons)}
-              icon="copy"
               open={openDropdown === "reasons"}
               onOpenChange={(open) => setOpenDropdown(open ? "reasons" : null)}
             />
@@ -857,7 +857,6 @@ function ClarificationModal({ onClose, onReturn }: { onClose: () => void; onRetu
               options={["Hotel booking confirmation", "Attendee list", "Payment statement"]}
               selected={documents}
               onToggle={(item) => toggle(item, documents, setDocuments)}
-              icon="page"
               open={openDropdown === "documents"}
               onOpenChange={(open) => setOpenDropdown(open ? "documents" : null)}
             />
@@ -894,7 +893,6 @@ function ClarificationDropdown({
   options,
   selected,
   onToggle,
-  icon,
   open,
   onOpenChange,
 }: {
@@ -903,7 +901,6 @@ function ClarificationDropdown({
   options: string[];
   selected: string[];
   onToggle: (item: string) => void;
-  icon: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -916,29 +913,32 @@ function ClarificationDropdown({
   return (
     <div className={`clarification-dropdown${open ? " open" : ""}`}>
       <span className="clarification-dropdown-label">{title}</span>
-      <button
-        className="clarification-dropdown-trigger"
-        type="button"
-        aria-expanded={open}
-        onClick={() => onOpenChange(!open)}
-      >
-        <span><FigmaIcon name={icon} size={16} /> {selectionLabel}</span>
-        <CaretDown size={16} />
-      </button>
-      {open && (
-        <div className="clarification-dropdown-menu">
+      <Dropdown.Root open={open} onOpenChange={onOpenChange}>
+        <Dropdown.Trigger asChild>
+          <button
+            className="align-select-trigger clarification-dropdown-trigger"
+            type="button"
+            aria-label={title}
+          >
+            <span>{selectionLabel}</span>
+            <CaretDown size={16} className="align-select-arrow" />
+          </button>
+        </Dropdown.Trigger>
+        <Dropdown.Content className="clarification-dropdown-menu">
           {options.map((item) => {
             const isSelected = selected.includes(item);
             return (
-              <label className={isSelected ? "selected" : ""} key={item}>
-                <input type="checkbox" checked={isSelected} onChange={() => onToggle(item)} />
-                <i>{isSelected ? <Check size={12} /> : <FigmaIcon name={icon} size={13} />}</i>
-                <span>{item}</span>
-              </label>
+              <Dropdown.CheckboxItem
+                checked={isSelected}
+                key={item}
+                onCheckedChange={() => onToggle(item)}
+              >
+                {item}
+              </Dropdown.CheckboxItem>
             );
           })}
-        </div>
-      )}
+        </Dropdown.Content>
+      </Dropdown.Root>
     </div>
   );
 }
