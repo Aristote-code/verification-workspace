@@ -288,3 +288,13 @@ Source: Figma node `6144:4474`.
 - **Open item:** exact spacing/border values from the actual Figma node are still unverified since the file is inaccessible. Re-check against real Figma data once access is shared.
 
 **Final result: implemented from screenshot reference — pending Figma access to verify exact values.**
+
+## Duplicate-comparison modal loading raw multi-megabyte PNGs
+
+- The comparison overlay's two receipt images (`ComparisonOverlay`) used plain `<img src="/figma/hotel-maya.png">` / `<img src="/figma/hotel-jonas.png">` — bypassing the AVIF-preferred/PNG-fallback `<picture>` pattern already established in `EvidenceView` and required by `AGENTS.md`. Those two files alone were 552 KB and 460 KB.
+- Correctly optimized AVIF equivalents already existed unused in `public/assets/` (`hotel-maya.avif` 56 KB, `hotel-jonas.avif` 80 KB, matching the same 1055×1491 receipts used elsewhere), just never wired into this modal.
+- Switched both images to `<picture>` with the AVIF source preferred and the existing `/assets/hotel-*.png` as fallback, matching `EvidenceView`'s pattern exactly.
+- Verified over the network tab: only the two AVIF files load (135 KB total) — the multi-megabyte PNGs are no longer requested by AVIF-capable browsers.
+- Production typecheck/build passes.
+
+**Final result: passed.**

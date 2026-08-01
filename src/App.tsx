@@ -721,11 +721,17 @@ function ComparisonOverlay({ onClose }: { onClose: () => void }) {
         <main>
           <div className="compare-document">
             <div className="compare-label"><span>Current claim</span><strong>Maya Chen · EXP-2841 · RGH-847362</strong></div>
-            <img src="/figma/hotel-maya.png" alt="Current claim hotel invoice" />
+            <picture>
+              <source srcSet="/assets/hotel-maya.avif" type="image/avif" />
+              <img src="/assets/hotel-maya.png" alt="Current claim hotel invoice" />
+            </picture>
           </div>
           <div className="compare-document">
             <div className="compare-label"><span>Potential match</span><strong>Jonas Weber · EXP-2798 · RGH-847351</strong></div>
-            <img src="/figma/hotel-jonas.png" alt="Potential matching hotel invoice" />
+            <picture>
+              <source srcSet="/assets/hotel-jonas.avif" type="image/avif" />
+              <img src="/assets/hotel-jonas.png" alt="Potential matching hotel invoice" />
+            </picture>
           </div>
           <div className="comparison-facts">
             <h2>Similarities</h2>
