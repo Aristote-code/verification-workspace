@@ -277,3 +277,14 @@ Source: Figma node `6144:4474`.
 - Production typecheck/build passes. Verified in-browser: Hotel and Stay dates rows now render at identical stroke weight and color, and the bed glyph is right-side up and matches the Figma screenshot exactly.
 
 **Final result: passed.**
+
+## Claim navigation controls — resized per updated reference
+
+- The user supplied a screenshot plus a Figma link (`UTA6qsLeS9sfUGrOJb1FiW`, node `6144-3603`) showing the Back/Previous/Next controls noticeably larger and more rounded than the implementation. That file is not accessible to the connected Figma account (edit-access error on every call: `get_design_context`, `get_screenshot`, `get_metadata`), so this pass was implemented directly from the supplied screenshot rather than raw Figma data.
+- Verified the *existing* implementation still matched the original documented spec exactly (node `6144:4501` in the accessible file: 26×26 px buttons, 6 px radius, 115 px fixed width) — confirming the mismatch is a newer design update in the inaccessible file, not a regression.
+- Resized the controls to match the screenshot: 34×34 px buttons (was 26×26), 10 px corner radius (was 6 px), 24 px gap between Back and the pagination pair (was 29 px), 16 px icons (was 14 px). Removed the fixed 115 px container width so it sizes naturally.
+- Replaced the rotated `SquareArrowDown01Icon` (a boxed arrow glyph, rotated 180° for "Previous") with a plain `ChevronUpIcon`/`ChevronDownIcon` pair, matching the clean single-stroke chevrons in the screenshot instead of a boxed-arrow-within-a-box look.
+- Production typecheck/build passes. Verified in-browser at 1440×900 against a magnified clone of the control — corner radius, button size, and icon style now match the supplied screenshot.
+- **Open item:** exact spacing/border values from the actual Figma node are still unverified since the file is inaccessible. Re-check against real Figma data once access is shared.
+
+**Final result: implemented from screenshot reference — pending Figma access to verify exact values.**
