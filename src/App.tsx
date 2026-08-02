@@ -853,9 +853,8 @@ function ClarificationModal({ onClose, onReturn }: { onClose: () => void; onRetu
         <section className="clarification-modal clarification-complete" role="dialog" aria-modal="true" aria-labelledby="clarification-success-title">
           <button className="clarification-close" aria-label="Close clarification confirmation" onClick={onClose}><X size={20} /></button>
           <div className="clarification-success-icon"><FigmaIcon name="mail-validation" size={34} /></div>
-          <span className="flow-eyebrow">Request sent</span>
-          <h1 id="clarification-success-title">Waiting for Jean-Paul’s response</h1>
-          <p>The claim is paused and will return to the verification queue when the employee replies.</p>
+          <h1 id="clarification-success-title">Request sent</h1>
+          <p>The claim is paused, waiting for Jean-Paul’s response.</p>
           <div className="clarification-summary">
             <span><small>Claim</small><strong>EXP-2841</strong></span>
             <span><small>Response requested by</small><strong>{dueDate}</strong></span>

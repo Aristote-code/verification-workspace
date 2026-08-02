@@ -457,14 +457,15 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
 .clarification-complete .clarification-close { position: absolute; right: 20px; top: 20px; }
 .clarification-success-icon { width: 74px; height: 74px; margin: 0 auto 22px; display: grid; place-items: center; color: #fff; border-radius: 50%; background: #20b26b; box-shadow: 0 0 0 11px #e6f8ef; }
 .clarification-success-icon img { filter: brightness(0) invert(1); }
-.clarification-complete h1 { margin: 8px 0 10px; font-size: 30px; line-height: 36px; letter-spacing: -.04em; }
+.clarification-complete h1 { margin: 8px 0 8px; font-size: 34px; line-height: 40px; letter-spacing: -.04em; }
 .clarification-complete > p { margin: 0; color: #737981; font-size: 14px; line-height: 21px; }
 .clarification-summary { width: 100%; margin: 32px auto 22px; display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border: 1px solid #dedfdc; border-radius: 10px; background: #fff; text-align: left; }
 .clarification-summary > span { min-height: 74px; padding: 15px 17px; display: flex; flex-direction: column; gap: 7px; border-right: 1px solid #dedfdc; }
 .clarification-summary > span:last-child { border-right: 0; }
 .clarification-summary small { color: #7b8087; font-size: 11px; }
 .clarification-summary strong { font-size: 13px; }
-.flow-complete-actions { display: flex; justify-content: center; gap: 10px; }
+.flow-complete-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.flow-complete-actions .fancy-button { width: 100%; }
 
 .decision-overlay { z-index: 120; background: rgba(37,45,63,.31); backdrop-filter: blur(1.5px); }
 .decision-modal { position: relative; width: 780px; height: auto; max-height: calc(100% - 44px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #dedfdc; border-radius: 14px; background: #fff; box-shadow: 0 28px 90px rgba(24,31,45,.22); }

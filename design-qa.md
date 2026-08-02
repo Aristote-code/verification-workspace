@@ -171,6 +171,17 @@ Source: Figma node `6144:4474`.
 - Production typecheck/build passes. QA screenshots are stored in `qa/clarification-modal/`.
 
 **Final result: passed.**
+
+## Clarification success hierarchy and actions
+
+- Promoted `Request sent` from a small eyebrow to the primary 34 px success heading.
+- Replaced the long queue-return explanation with the single supporting sentence: `The claim is paused, waiting for Jean-Paul’s response.`
+- Preserved the three-part claim summary and existing success artwork.
+- Stretched View claim and Return to queue into two equal 270 × 40 px actions on the same row.
+- Verified the request submission path reaches the updated confirmation state and both actions remain accessible.
+- Browser console has no errors or warnings.
+
+**Final result: passed.**
 ## Compact final-reimbursement modal
 
 - Reworked Final Decision Review to use the same 780 px header/body/footer structure as Request Clarification.
