@@ -171,7 +171,6 @@ Source: Figma node `6144:4474`.
 - Production typecheck/build passes. QA screenshots are stored in `qa/clarification-modal/`.
 
 **Final result: passed.**
-
 ## Compact final-reimbursement modal
 
 - Reworked Final Decision Review to use the same 780 px header/body/footer structure as Request Clarification.
@@ -296,5 +295,16 @@ Source: Figma node `6144:4474`.
 - Switched both images to `<picture>` with the AVIF source preferred and the existing `/assets/hotel-*.png` as fallback, matching `EvidenceView`'s pattern exactly.
 - Verified over the network tab: only the two AVIF files load (135 KB total) — the multi-megabyte PNGs are no longer requested by AVIF-capable browsers.
 - Production typecheck/build passes.
+
+**Final result: passed.**
+
+## Final reimbursement modal — compact proportion adjustment
+
+- Preserved the established 780 px modal width and three-column reimbursement summary.
+- Replaced the forced 760 px modal height with content-driven height plus a safe viewport maximum.
+- The verified desktop modal now renders at 780 × 607 px.
+- Reduced the space between the reviewer confirmation and action footer to 14 px, removing the disproportionate empty region.
+- Preserved short-viewport scrolling and confirmed the acknowledgement still enables approval and disables it again when reset.
+- Production typecheck/build passes and the browser console has no errors.
 
 **Final result: passed.**
