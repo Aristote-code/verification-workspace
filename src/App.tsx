@@ -1,729 +1,1036 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  AirplaneTilt,
-  ArrowClockwise,
-  ArrowLeft,
-  ArrowRight,
-  Bed,
-  Bell,
-  BoundingBox,
-  CalendarBlank,
-  CaretDown,
-  CaretRight,
-  CaretUp,
-  ChartBar,
-  Check,
-  CheckCircle,
-  ClipboardText,
-  Clock,
-  Copy,
-  FileArrowDown,
-  FileText,
-  Flag,
-  ForkKnife,
-  Funnel,
-  Gear,
-  Info,
-  ListChecks,
-  MagnifyingGlass,
-  Minus,
-  NotePencil,
-  Paperclip,
-  PaperPlaneTilt,
-  Plus,
-  Scan,
-  SealCheck,
-  ShieldCheck,
-  SignOut,
-  SlidersHorizontal,
-  Taxi,
-  WarningCircle,
-  X,
-} from "@phosphor-icons/react";
-import { claim, initialAuditEvents, mealPolicy, queueClaims } from "./data";
-import type {
-  AuditEvent,
-  ClaimStatus,
-  ClarificationRequest,
-  Expense,
-  ReviewerAssessment,
-} from "./types";
+  AirplaneTakeOff01Icon,
+  AiScanIcon,
+  ArrowLeft02Icon,
+  ArrowRight01Icon,
+  BedDoubleIcon,
+  Calendar01Icon,
+  Cancel01Icon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  Copy01Icon,
+  CreditCardIcon,
+  Exchange01Icon,
+  File01Icon,
+  FilterIcon,
+  Home01Icon,
+  InformationCircleIcon,
+  JusticeScale01Icon,
+  Message01Icon,
+  MinusSignIcon,
+  Pdf01Icon,
+  PlusSignIcon,
+  Refresh01Icon,
+  Restaurant01Icon,
+  RotateLeft01Icon,
+  RotateRight01Icon,
+  Search01Icon,
+  SlidersHorizontalIcon,
+  TaxiIcon,
+  Ticket01Icon,
+  UserGroupIcon,
+  UserIcon,
+} from "@hugeicons/core-free-icons";
+import * as FancyButton from "@/components/ui/fancy-button";
+import * as Dropdown from "@/components/ui/dropdown";
+import * as Select from "@/components/ui/select";
+import { Icon, type IconData } from "./components/Icon";
 
-type Screen = "queue" | "workspace" | "compare" | "policy" | "clarify" | "decision" | "complete";
-type Modal = "none" | "duplicate-reason" | "reject" | "note";
+type IconProps = { size?: number; weight?: string; className?: string };
 
-const money = (value: number) =>
-  new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(value);
+function FigmaIcon({
+  name,
+  size = 16,
+  className,
+  alt = "",
+}: {
+  name: string;
+  size?: number;
+  className?: string;
+  alt?: string;
+}) {
+  return (
+    <img
+      alt={alt}
+      className={`figma-icon${className ? ` ${className}` : ""}`}
+      height={size}
+      src={`/figma/icons/${name}.svg`}
+      width={size}
+    />
+  );
+}
 
-const categoryIcon = {
-  hotel: Bed,
-  taxi: Taxi,
-  meal: ForkKnife,
-  flight: AirplaneTilt,
+function iconComponent(icon: IconData) {
+  return function HugeIcon({ size = 16, className }: IconProps) {
+    return <Icon icon={icon} size={size} className={className} />;
+  };
+}
+
+const AirplaneTilt = iconComponent(AirplaneTakeOff01Icon);
+const ArrowLeft = iconComponent(ArrowLeft02Icon);
+const Bed = iconComponent(BedDoubleIcon);
+const CalendarBlank = iconComponent(Calendar01Icon);
+const CaretDown = iconComponent(ChevronDownIcon);
+const CaretRight = iconComponent(ArrowRight01Icon);
+const CaretUp = iconComponent(ChevronUpIcon);
+const Check = iconComponent(CheckIcon);
+const ClipboardText = iconComponent(Ticket01Icon);
+const Copy = iconComponent(Copy01Icon);
+const CreditCard = iconComponent(CreditCardIcon);
+const FilePdf = iconComponent(Pdf01Icon);
+const FileText = iconComponent(File01Icon);
+const ForkKnife = iconComponent(Restaurant01Icon);
+const Funnel = iconComponent(FilterIcon);
+const House = iconComponent(Home01Icon);
+const Info = iconComponent(InformationCircleIcon);
+const MagnifyingGlass = iconComponent(Search01Icon);
+const Minus = iconComponent(MinusSignIcon);
+const Plus = iconComponent(PlusSignIcon);
+const Scales = iconComponent(JusticeScale01Icon);
+const SlidersHorizontal = iconComponent(SlidersHorizontalIcon);
+const Taxi = iconComponent(TaxiIcon);
+const User = iconComponent(UserIcon);
+const Users = iconComponent(UserGroupIcon);
+const X = iconComponent(Cancel01Icon);
+
+type ReviewTab = "evidence" | "details" | "audit";
+type Screen = "queue" | ReviewTab | "clarify" | "decision";
+type Overlay = "none" | "policy" | "compare" | "approved" | "reject";
+
+const expenses = [
+  { id: "hotel", merchant: "Riverside Grand Hotel", icon: Bed, date: "8–10 May 2026", amount: "RWF 1,092,000", state: "Possible duplicate", tone: "danger" },
+  { id: "taxi", merchant: "CityCab", icon: Taxi, date: "8 May 2026", amount: "RWF 95,200", state: "Verified", tone: "success" },
+  { id: "meal", merchant: "The Foundry Kitchen", icon: ForkKnife, date: "9 May 2026", amount: "RWF 95,200", state: "Policy exception", tone: "warning" },
+  { id: "flight", merchant: "Lufthansa", icon: AirplaneTilt, date: "12 May 2026", amount: "RWF 464,800", state: "Verified", tone: "success" },
+] as const;
+
+type ExpenseId = typeof expenses[number]["id"];
+
+const expenseDocuments: Record<ExpenseId, {
+  title: string;
+  id: string;
+  avif?: string;
+  image: string;
+  alt: string;
+}> = {
+  hotel: {
+    title: "Riverside Grand Hotel — Invoice RGH-847362",
+    id: "DOC-847362",
+    avif: "/assets/hotel-jonas.avif",
+    image: "/figma/hotel-jonas.png",
+    alt: "Riverside Grand Hotel invoice",
+  },
+  taxi: {
+    title: "CityCab — Receipt CC-LHR-80526-7481",
+    id: "DOC-CC7481",
+    avif: "/assets/taxi.avif",
+    image: "/assets/taxi.png",
+    alt: "CityCab airport transfer receipt",
+  },
+  meal: {
+    title: "The Foundry Kitchen — Receipt FK-090526-4817",
+    id: "DOC-FK4817",
+    avif: "/assets/dinner.avif",
+    image: "/assets/dinner.png",
+    alt: "The Foundry Kitchen dinner receipt",
+  },
+  flight: {
+    title: "Lufthansa — E-ticket LH6K2P",
+    id: "DOC-LH6K2P",
+    avif: "/assets/flight.avif",
+    image: "/assets/flight.png",
+    alt: "Lufthansa flight e-ticket",
+  },
 };
 
+const queueRows = [
+  ["Daniel Uwimana", "D", "EXP-3012", "Kigali office supplies", "02 March 2026", "RWF 980,000", "All checks passed", "Needs review"],
+  ["Jean-Paul Habimana", "J", "EXP-3018", "Team building event", "14 March 2026", "RWF 2,150,000", "All checks passed", "Employee responded"],
+  ["Aline Mukiza", "A", "EXP-3015", "Client entertainment", "08 March 2026", "RWF 1,450,000", "4 findings", "Needs review"],
+  ["Claudine Ishimwe", "C", "EXP-3021", "Travel reimbursement", "19 March 2026", "RWF 675,000", "3 findings", "Employee responded"],
+  ["Patrick Niyonzima", "P", "EXP-3024", "Software licences", "25 March 2026", "RWF 3,200,000", "All checks passed", "Resolved"],
+  ["Grace Uwase", "G", "EXP-3027", "Conference registration", "03 April 2026", "RWF 1,850,000", "2 findings", "Needs review"],
+  ["Sandra Kamanzi", "S", "EXP-3033", "Marketing materials", "22 April 2026", "RWF 520,000", "1 finding", "Ready"],
+  ["Eric Mugisha", "E", "EXP-3030", "Equipment purchase", "11 April 2026", "RWF 4,500,000", "3 findings", "Needs review"],
+  ["Robert Nsengimana", "R", "EXP-3036", "Office renovation", "05 May 2026", "RWF 1,100,000", "All checks passed", "Resolved"],
+  ["Marie Ingabire", "M", "EXP-3039", "Training workshop", "18 May 2026", "RWF 2,750,000", "Response received", "Employee responded"],
+  ["Thierry Bizimana", "T", "EXP-3042", "Vehicle maintenance", "29 May 2026", "RWF 1,320,000", "6 findings", "Needs review"],
+  ["Francine Mutoni", "F", "EXP-3045", "Internet services", "07 June 2026", "RWF 5,600,000", "Response received", "Employee responded"],
+  ["Bernard Rukundo", "B", "EXP-3048", "Security upgrade", "15 June 2026", "RWF 2,080,000", "All checks passed", "Ready"],
+] as const;
+
+const avatarGradients = [
+  "linear-gradient(135deg, #80d9e5 0%, #59a6d9 70.711%)",
+  "linear-gradient(135deg, #ffb273 0%, #f28073 70.711%)",
+  "linear-gradient(135deg, #e58bd2 0%, #d968b6 70.711%)",
+  "linear-gradient(135deg, #66d9c2 0%, #46bfa6 70.711%)",
+  "linear-gradient(135deg, #738cf2 0%, #9966d9 70.711%)",
+  "linear-gradient(135deg, #e58bd2 0%, #d968c8 70.711%)",
+  "linear-gradient(135deg, #f2c15e 0%, #f2a65a 70.711%)",
+  "linear-gradient(135deg, #f28b9d 0%, #e56899 70.711%)",
+  "linear-gradient(135deg, #80d9e5 0%, #59a6d9 70.711%)",
+  "linear-gradient(135deg, #ff9d80 0%, #f27c73 70.711%)",
+  "linear-gradient(135deg, #e58bd2 0%, #d968b6 70.711%)",
+  "linear-gradient(135deg, #ff9999 0%, #e573b2 70.711%)",
+  "linear-gradient(135deg, #738cf2 0%, #9966d9 70.711%)",
+];
+
 export function App() {
-  const [screen, setScreen] = useState<Screen>("queue");
-  const [selectedExpenseId, setSelectedExpenseId] = useState("hotel");
-  const [duplicateAssessment, setDuplicateAssessment] = useState<ReviewerAssessment | null>(null);
-  const [policyAssessment, setPolicyAssessment] = useState<ReviewerAssessment | null>(null);
-  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>(initialAuditEvents);
-  const [claimStatus, setClaimStatus] = useState<ClaimStatus>("needs-review");
-  const [modal, setModal] = useState<Modal>("none");
-  const [toast, setToast] = useState<string | null>(null);
+  const initial = (window.location.hash.slice(1) || "queue") as Screen | Overlay;
+  const screens: Screen[] = ["queue", "evidence", "details", "audit", "clarify", "decision"];
+  const overlays: Overlay[] = ["policy", "compare", "approved", "reject"];
+  const [screen, setScreen] = useState<Screen>(screens.includes(initial as Screen) ? initial as Screen : "queue");
+  const [overlay, setOverlay] = useState<Overlay>(overlays.includes(initial as Overlay) ? initial as Overlay : "none");
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseId>("hotel");
+  const [zoom, setZoom] = useState(92);
 
-  const selectedExpense = claim.expenses.find((expense) => expense.id === selectedExpenseId) ?? claim.expenses[0];
-  const findingsReviewed = Number(Boolean(duplicateAssessment)) + Number(Boolean(policyAssessment));
-  const readyForDecision = findingsReviewed === 2;
-  const excludedAmount = policyAssessment?.adjustedAmount === 50 ? 18 : policyAssessment?.decision === "Noncompliant" ? 68 : 0;
-  const reimbursable = claim.total - excludedAmount;
-
-  const addAudit = (event: Omit<AuditEvent, "id">) => {
-    setAuditEvents((current) => [...current, { ...event, id: `audit-${current.length + 1}` }]);
+  const navigate = (next: Screen | Overlay) => {
+    if (overlays.includes(next as Overlay)) {
+      setOverlay(next as Overlay);
+      if (screen === "queue") setScreen("evidence");
+    } else {
+      setScreen(next as Screen);
+      setOverlay("none");
+    }
+    window.location.hash = next;
   };
 
   useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 3600);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
-
-  const navigateToExpense = (expense: Expense) => {
-    setSelectedExpenseId(expense.id);
-    if (expense.id === "dinner") setScreen("policy");
-  };
-
-  const resolveDuplicate = (reason: string) => {
-    const assessment: ReviewerAssessment = {
-      findingId: "duplicate",
-      decision: "Not a duplicate",
-      reason,
-      assessedAt: "15 July 2026, 10:24",
+    const onHash = () => {
+      const next = (window.location.hash.slice(1) || "queue") as Screen | Overlay;
+      if (overlays.includes(next as Overlay)) {
+        setOverlay(next as Overlay);
+        setScreen("evidence");
+      } else {
+        setScreen(next as Screen);
+        setOverlay("none");
+      }
     };
-    setDuplicateAssessment(assessment);
-    setClaimStatus(policyAssessment ? "ready-for-decision" : "finding-reviewed");
-    addAudit({
-      label: "Duplicate finding dismissed",
-      detail: `Separate conference attendee — ${reason}.`,
-      actor: claim.reviewer,
-      timestamp: "15 July 2026, 10:24",
-    });
-    setModal("none");
-    setToast("Finding resolved and added to the audit trail");
-    setScreen("workspace");
-  };
-
-  const resolvePolicy = (decision: string, adjustedAmount?: number) => {
-    const assessment: ReviewerAssessment = {
-      findingId: "policy",
-      decision,
-      reason:
-        decision === "Reimburse policy limit"
-          ? "International meal allowance applied"
-          : decision === "Accepted exception"
-            ? "Business-hosting exception accepted"
-            : "Expense marked outside policy",
-      adjustedAmount,
-      assessedAt: "15 July 2026, 10:29",
-    };
-    setPolicyAssessment(assessment);
-    setClaimStatus(duplicateAssessment ? "ready-for-decision" : "finding-reviewed");
-    addAudit({
-      label: "Policy finding reviewed",
-      detail:
-        adjustedAmount === 50
-          ? "€50.00 marked reimbursable; €18.00 excluded under policy."
-          : `${decision} recorded for the dinner expense.`,
-      actor: claim.reviewer,
-      timestamp: "15 July 2026, 10:29",
-    });
-    setToast("Policy decision saved");
-    setScreen("workspace");
-  };
-
-  const sendClarification = (request: ClarificationRequest) => {
-    setClaimStatus("awaiting-clarification");
-    addAudit({
-      label: "Clarification requested",
-      detail: `${request.reasons.join(", ")}. Response requested by ${request.dueDate}.`,
-      actor: claim.reviewer,
-      timestamp: "15 July 2026, 10:27",
-    });
-    setToast("Clarification request sent to Maya Chen");
-  };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   return (
-    <div className="app-shell">
+    <div className={`app${overlay !== "none" ? ` overlay-${overlay}` : ""}`}>
       {screen === "queue" ? (
-        <QueueScreen onOpen={() => setScreen("workspace")} />
-      ) : screen === "compare" ? (
-        <ComparisonScreen
-          onBack={() => setScreen("workspace")}
-          onResolve={() => setModal("duplicate-reason")}
-          onClarify={() => setScreen("clarify")}
-        />
-      ) : screen === "policy" ? (
-        <PolicyScreen
-          onBack={() => setScreen("workspace")}
-          onResolve={resolvePolicy}
-          onClarify={() => setScreen("clarify")}
-        />
+        <Queue onOpen={() => { setSelectedExpense("hotel"); navigate("evidence"); }} />
       ) : screen === "clarify" ? (
-        <ClarificationScreen
-          status={claimStatus}
-          onBack={() => setScreen("workspace")}
-          onSend={sendClarification}
-          onReturn={() => setScreen("queue")}
-        />
+        <>
+          <ReviewShell
+            screen="evidence"
+            selectedExpense={selectedExpense}
+            zoom={zoom}
+            onZoom={setZoom}
+            onSelectExpense={setSelectedExpense}
+            onNavigate={navigate}
+          />
+          <ClarificationModal onClose={() => navigate("evidence")} onReturn={() => navigate("queue")} />
+        </>
       ) : screen === "decision" ? (
-        <DecisionScreen
-          duplicateAssessment={duplicateAssessment!}
-          policyAssessment={policyAssessment!}
-          reimbursable={reimbursable}
-          excludedAmount={excludedAmount}
-          onBack={() => setScreen("workspace")}
-          onReject={() => setModal("reject")}
-          onApprove={() => {
-            setClaimStatus("approved");
-            addAudit({
-              label: "Claim approved",
-              detail: `${money(reimbursable)} approved; ${money(excludedAmount)} excluded.`,
-              actor: claim.reviewer,
-              timestamp: "15 July 2026, 10:32",
-            });
-            setScreen("complete");
-          }}
-        />
-      ) : screen === "complete" ? (
-        <CompleteScreen
-          reimbursable={reimbursable}
-          excludedAmount={excludedAmount}
-          auditEvents={auditEvents}
-          onNext={() => {
-            setScreen("queue");
-            setToast("Moved to the next claim in the queue");
-          }}
-        />
+        <>
+          <ReviewShell
+            screen="evidence"
+            selectedExpense={selectedExpense}
+            zoom={zoom}
+            onZoom={setZoom}
+            onSelectExpense={setSelectedExpense}
+            onNavigate={navigate}
+          />
+          {overlay === "none" && <DecisionModal onBack={() => navigate("evidence")} onApprove={() => navigate("approved")} onReject={() => navigate("reject")} />}
+        </>
       ) : (
-        <WorkspaceScreen
+        <ReviewShell
+          screen={screen as ReviewTab}
           selectedExpense={selectedExpense}
-          selectedExpenseId={selectedExpenseId}
-          onSelectExpense={setSelectedExpenseId}
-          onOpenFinding={(type) => setScreen(type === "duplicate" ? "compare" : "policy")}
-          duplicateAssessment={duplicateAssessment}
-          policyAssessment={policyAssessment}
-          findingsReviewed={findingsReviewed}
-          readyForDecision={readyForDecision}
-          claimStatus={claimStatus}
-          auditEvents={auditEvents}
-          onClarify={() => setScreen("clarify")}
-          onReject={() => setModal("reject")}
-          onDecision={() => setScreen("decision")}
-          onBackQueue={() => setScreen("queue")}
-          onAddNote={() => setModal("note")}
-          onNavigateExpense={navigateToExpense}
+          zoom={zoom}
+          onZoom={setZoom}
+          onSelectExpense={setSelectedExpense}
+          onNavigate={navigate}
         />
       )}
-
-      {modal === "duplicate-reason" && (
-        <ReasonDialog onClose={() => setModal("none")} onSubmit={resolveDuplicate} />
-      )}
-      {modal === "reject" && (
-        <RejectDialog
-          onClose={() => setModal("none")}
-          onSubmit={(reason) => {
-            addAudit({
-              label: "Claim rejected",
-              detail: reason,
-              actor: claim.reviewer,
-              timestamp: "15 July 2026, 10:32",
-            });
-            setModal("none");
-            setToast("Rejection recorded in the audit trail");
-          }}
-        />
-      )}
-      {modal === "note" && (
-        <NoteDialog
-          onClose={() => setModal("none")}
-          onSubmit={(note) => {
-            addAudit({
-              label: "Internal note added",
-              detail: note,
-              actor: claim.reviewer,
-              timestamp: "15 July 2026, 10:26",
-            });
-            setModal("none");
-            setToast("Internal note saved");
-          }}
-        />
-      )}
-      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+      {overlay === "policy" && <PolicyOverlay onClose={() => navigate("evidence")} />}
+      {overlay === "compare" && <ComparisonOverlay onClose={() => navigate("evidence")} />}
+      {overlay === "approved" && <ApprovedOverlay onNext={() => navigate("queue")} />}
+      {overlay === "reject" && <RejectOverlay onClose={() => navigate("decision")} onDone={() => navigate("queue")} />}
     </div>
   );
 }
 
-function Rail({ active = "workspace", onQueue }: { active?: string; onQueue?: () => void }) {
-  const items = [
-    { id: "workspace", label: "Workspace", icon: ClipboardText },
-    { id: "search", label: "Search", icon: MagnifyingGlass },
-    { id: "checks", label: "My reviews", icon: ListChecks },
-    { id: "flag", label: "Clarifications", icon: Flag },
-    { id: "files", label: "Documents", icon: FileText },
-    { id: "reports", label: "Reports", icon: ChartBar },
-    { id: "settings", label: "Settings", icon: Gear },
-  ];
+function Rail({ onQueue }: { onQueue?: () => void }) {
   return (
-    <aside className="rail" aria-label="Primary navigation">
-      <button className="rail-logo" aria-label="Verification Workspace" onClick={onQueue}>
-        <ShieldCheck size={28} weight="duotone" />
+    <aside className="rail">
+      <button className="brand" aria-label="Zemo" onClick={onQueue}>
+        <FigmaIcon name="zemo-logo" size={20} />
       </button>
-      <nav>
-        {items.map(({ id, label, icon: Icon }) => (
-          <button key={id} className={active === id ? "active" : ""} aria-label={label} title={label}>
-            <Icon size={23} weight={active === id ? "fill" : "regular"} />
-          </button>
-        ))}
+      <nav aria-label="Primary navigation">
+        <button aria-label="Home" data-tooltip="Home"><FigmaIcon name="home" /></button>
+        <button className="active" aria-label="Claims" data-tooltip="Claims"><FigmaIcon name="ticket" /></button>
+        <button aria-label="Messages" data-tooltip="Messages"><FigmaIcon name="chat" /></button>
       </nav>
-      <div className="rail-bottom">
-        <button aria-label="Sign out" title="Sign out"><SignOut size={23} /></button>
-        <button aria-label="Collapse navigation" title="Collapse navigation"><CaretRight size={22} /></button>
-      </div>
+      <button className="profile" aria-label="Profile" data-tooltip="Profile"><FigmaIcon name="user" /></button>
     </aside>
   );
 }
 
-function TopBar({ title = "Verification Workspace", onBack }: { title?: string; onBack?: () => void }) {
+function Queue({ onOpen }: { onOpen: () => void }) {
+  const [search, setSearch] = useState("");
+  const rows = useMemo(
+    () => queueRows.filter((row) => `${row[0]} ${row[2]} ${row[3]}`.toLowerCase().includes(search.toLowerCase())),
+    [search],
+  );
+
   return (
-    <header className="topbar">
-      <div className="topbar-title">
-        {onBack && <button className="icon-button" onClick={onBack} aria-label="Go back"><ArrowLeft size={19} /></button>}
-        <span>{title}</span>
+    <div className="queue-screen">
+      <Rail />
+      <main className="queue-main">
+        <header className="queue-heading">
+          <div>
+            <h1>Verification Queue</h1>
+            <p>Review and verify employee expense claims.</p>
+          </div>
+          <div className="queue-counts">
+            <strong>138</strong><span>Claims awaiting</span><i />
+            <strong>23</strong><span>Claims completed</span>
+          </div>
+        </header>
+        <div className="queue-toolbar">
+          <label className="search-control">
+            <FigmaIcon name="search" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Claims" />
+            <kbd>⌘</kbd><kbd>P</kbd>
+          </label>
+          <div className="queue-filters">
+            <button className="control-button">
+              <FigmaIcon name="status-filter" />
+              All Statuses
+            </button>
+            <button className="control-button">
+              <FigmaIcon name="filter" />
+              All risks
+            </button>
+          </div>
+        </div>
+        <div className="queue-table">
+          <div className="queue-row queue-table-head">
+            <span>Employee</span>
+            <span>Claim</span>
+            <span>Submitted <FigmaIcon name="sort" /></span>
+            <span>Amount <FigmaIcon name="sort" /></span>
+            <span>AI review</span>
+            <span>Status</span>
+          </div>
+          {rows.map((row, index) => (
+            <button className="queue-row" key={row[2]} onClick={onOpen}>
+              <span className="employee-cell">
+                <i style={{ backgroundImage: avatarGradients[index % avatarGradients.length] }}>{row[1]}</i>
+                <b>{row[0]}</b>
+                {[1, 3, 9, 11].includes(index) && <em><FigmaIcon name="message" size={10} /></em>}
+              </span>
+              <span className="claim-cell"><b>{row[2]}</b><small>{row[3]}</small></span>
+              <span>{row[4]}</span>
+              <span className="mono">{row[5]}</span>
+              <ReviewBadge value={row[6]} />
+              <StatusBadge value={row[7]} />
+            </button>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function ReviewBadge({ value }: { value: string }) {
+  const pass = value.includes("passed");
+  const response = value.includes("Response");
+  return <span className={`inline-status ${pass ? "green" : response ? "orange" : "amber"}`}>
+    <i><FigmaIcon name={pass ? "check-square" : response ? "mail-validation" : "resolved"} size={18} /></i>
+    {value}
+  </span>;
+}
+
+function StatusBadge({ value }: { value: string }) {
+  const tone = value === "Resolved" ? "mint" : value === "Ready" ? "lavender" : value.includes("responded") ? "peach" : "cream";
+  const icon = value === "Resolved" ? "status-secondary" : value === "Ready" ? "minus-circle" : value.includes("responded") ? "mail" : "status-review";
+  return <span><i className={`status-pill ${tone}`}><FigmaIcon name={icon} size={12} />{value}</i></span>;
+}
+
+type Navigate = (next: Screen | Overlay) => void;
+
+function ReviewShell({
+  screen,
+  selectedExpense,
+  zoom,
+  onZoom,
+  onSelectExpense,
+  onNavigate,
+}: {
+  screen: ReviewTab;
+  selectedExpense: ExpenseId;
+  zoom: number;
+  onZoom: (zoom: number) => void;
+  onSelectExpense: (id: ExpenseId) => void;
+  onNavigate: Navigate;
+}) {
+  return (
+    <div className="review-screen" data-screen={screen}>
+      <Rail onQueue={() => onNavigate("queue")} />
+      <ClaimHeader onBack={() => onNavigate("queue")} />
+      <main className="review-grid">
+        <ExpensePanel selected={selectedExpense} onSelect={onSelectExpense} />
+        <section className="evidence-panel">
+          <div className="tabs">
+            <button className={screen === "evidence" ? "active" : ""} onClick={() => onNavigate("evidence")}>Evidence</button>
+            <button className={screen === "details" ? "active" : ""} onClick={() => onNavigate("details")}>Extracted details</button>
+            <button className={screen === "audit" ? "active" : ""} onClick={() => onNavigate("audit")}>Audit trail</button>
+          </div>
+          {screen === "evidence" && <EvidenceView expense={selectedExpense} zoom={zoom} onZoom={onZoom} />}
+          {screen === "details" && <ExtractedDetails expense={selectedExpense} />}
+          {screen === "audit" && <AuditTrail />}
+        </section>
+        <ReviewPanel selected={selectedExpense} onNavigate={onNavigate} />
+      </main>
+    </div>
+  );
+}
+
+function ClaimHeader({ onBack }: { onBack: () => void }) {
+  return (
+    <header className="review-header">
+      <div className="claim-nav">
+        <div className="claim-controls">
+          <button onClick={onBack} aria-label="Back"><ArrowLeft size={16} /></button>
+          <span className="nav-pair">
+            <button aria-label="Previous claim"><CaretUp size={16} /></button>
+            <button aria-label="Next claim"><CaretDown size={16} /></button>
+          </span>
+        </div>
+        <span>23 of 138 claims</span>
       </div>
-      <div className="topbar-actions">
-        <button className="text-button muted"><CalendarBlank size={18} /> Jul 15, 2026</button>
-        <button className="icon-button" aria-label="Notifications"><Bell size={19} /></button>
-        <button className="avatar" aria-label="Olivia Harper profile">OH</button>
-        <CaretDown size={15} />
+      <div className="claim-person">
+        <span className="claim-avatar">J</span>
+        <div>
+          <strong>Jean-Paul Habimana</strong>
+          <small><FigmaIcon name="scroll" size={11} /> Claim EXP-2841 · <FigmaIcon name="location" size={11} /> London workshop · 8–12 May 2026</small>
+        </div>
       </div>
+      <div className="requested"><span>Total requested</span><strong>RWF&nbsp; 1,747,200</strong></div>
     </header>
   );
 }
 
-function ClaimHeader() {
-  const [historyOpen, setHistoryOpen] = useState(false);
+function ExpensePanel({ selected, onSelect }: { selected: ExpenseId; onSelect: (id: ExpenseId) => void }) {
   return (
-    <section className="claim-header">
-      <div className="claim-identity">
-        <div className="claim-avatar">{claim.employeeInitials}</div>
-        <div className="claim-identity-copy">
-          <div className="claimant-name-row"><strong>{claim.employee}</strong><button className="history-trigger" onClick={() => setHistoryOpen(!historyOpen)} aria-expanded={historyOpen}>Maya’s previous claims (4) <CaretDown size={14} /></button></div>
-          <div className="claim-reference"><span>Claim {claim.id} · {claim.purpose}</span><button className="copy-button" aria-label="Copy claim ID"><Copy size={15} /></button></div>
-          <small>{claim.department} · {claim.office} · {claim.tripDates}</small>
-        </div>
-        {historyOpen && <aside className="claimant-history" aria-label="Maya Chen claim history">
-          <div className="claimant-history-head"><div><span className="eyebrow">Previous reimbursement claims</span><strong>{claim.employee}</strong></div><button className="icon-button" aria-label="Close claimant history" onClick={() => setHistoryOpen(false)}><X size={17} /></button></div>
-          <p>Recent reimbursement claims provide context only; this review applies to {claim.id}.</p>
-          <div className="history-list">
-            <HistoryRow id="EXP-2719" label="Client dinner · London" amount="€124.00" status="Approved" />
-            <HistoryRow id="EXP-2632" label="Airport transport · Berlin" amount="€54.00" status="Approved" />
-            <HistoryRow id="EXP-2510" label="Training materials" amount="€216.50" status="Approved" />
-            <HistoryRow id="EXP-2448" label="Workshop travel · Paris" amount="€438.00" status="Clarified" />
-          </div>
-        </aside>}
-      </div>
-      <HeaderMetric label="Total requested" value={money(claim.total)} amount />
-      <HeaderMetric label="Status" value="Needs review" status />
-      <HeaderMetric label="Queue position" value={`${claim.queuePosition}`} detail={`of ${claim.queueTotal}`} />
-    </section>
-  );
-}
-
-function HeaderMetric({ label, value, detail, amount, status }: { label: string; value: string; detail?: string; amount?: boolean; status?: boolean }) {
-  return <div className={`header-metric ${amount ? "amount" : ""} ${status ? "status" : ""}`}><span className="eyebrow">{label}</span><strong>{status && <i />} {value}</strong>{detail && <small>{detail}</small>}</div>;
-}
-
-function HistoryRow({ id, label, amount, status }: { id: string; label: string; amount: string; status: string }) {
-  return <div className="history-row"><div><strong>{id}</strong><span>{label}</span></div><div><strong>{amount}</strong><span>{status}</span></div></div>;
-}
-
-function ProgressSteps({ reviewed = 0, decision = false }: { reviewed?: number; decision?: boolean }) {
-  const active = decision ? 3 : reviewed === 0 ? 1 : 2;
-  return (
-    <div className="progress-steps" aria-label={`Step ${active} of 3`}>
-      {["Review evidence", "Resolve findings", "Make decision"].map((label, index) => (
-        <div className={`progress-step ${active > index ? "active" : ""} ${active === index + 1 ? "current" : ""}`} key={label}>
-          <div className="step-line"><span>{active > index + 1 ? <Check size={14} weight="bold" /> : index + 1}</span></div>
-          <small>{label}</small>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function QueueScreen({ onOpen }: { onOpen: () => void }) {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("All statuses");
-  const [risk, setRisk] = useState("All risk");
-  const [sortAscending, setSortAscending] = useState(true);
-  const filtered = useMemo(() => {
-    return queueClaims
-      .filter((row) => `${row.employee} ${row.id} ${row.purpose}`.toLowerCase().includes(search.toLowerCase()))
-      .filter((row) => status === "All statuses" || row.status === status)
-      .filter((row) => risk === "All risk" || row.risk === risk)
-      .sort((a, b) => (sortAscending ? b.amount - a.amount : a.amount - b.amount));
-  }, [search, status, risk, sortAscending]);
-
-  return (
-    <div className="screen-frame queue-frame">
-      <Rail active="workspace" />
-      <div className="screen-content">
-        <TopBar />
-        <main className="queue-page">
-          <div className="queue-heading">
-            <div><span className="eyebrow">Operations</span><h1>Verification queue</h1><p>Review the claims that need human judgment.</p></div>
-            <div className="queue-summary"><strong>138</strong><span>awaiting review</span><i /><strong>23</strong><span>completed today</span></div>
-          </div>
-          <div className="queue-toolbar">
-            <label className="search-field"><MagnifyingGlass size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search employee, claim or purpose" /></label>
-            <label className="select-field"><SlidersHorizontal size={17} /><select value={status} onChange={(event) => setStatus(event.target.value)}><option>All statuses</option><option>Needs review</option><option>Ready</option><option>Employee responded</option></select></label>
-            <label className="select-field"><Funnel size={17} /><select value={risk} onChange={(event) => setRisk(event.target.value)}><option>All risk</option><option>Low</option><option>Medium</option><option>High</option></select></label>
-            <span className="result-count">{filtered.length} claims</span>
-          </div>
-          <div className="queue-table-wrap">
-            <table className="queue-table">
-              <thead><tr><th>Employee</th><th>Claim</th><th>Submitted</th><th><button onClick={() => setSortAscending(!sortAscending)}>Amount <CaretDown size={13} /></button></th><th>AI review</th><th>Risk</th><th>Status</th><th /></tr></thead>
-              <tbody>
-                {filtered.map((row) => (
-                  <tr key={row.id} className={row.id === claim.id ? "featured" : ""} onClick={row.id === claim.id ? onOpen : undefined} tabIndex={row.id === claim.id ? 0 : undefined} onKeyDown={(event) => event.key === "Enter" && row.id === claim.id && onOpen()}>
-                    <td><div className="person-cell"><span>{row.initials}</span><strong>{row.employee}</strong></div></td>
-                    <td><strong>{row.id}</strong><small>{row.purpose}</small></td>
-                    <td>{row.submitted}</td><td className="amount-cell">{money(row.amount)}</td>
-                    <td><AiReviewBadge value={row.ai} /></td>
-                    <td><RiskBadge risk={row.risk} /></td><td><ClaimStatusBadge status={row.status} /></td>
-                    <td>{row.id === claim.id && <button className="open-row" aria-label={`Open ${row.id}`}><ArrowRight size={18} /></button>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function RiskBadge({ risk }: { risk: string }) {
-  const Icon = risk === "Low" ? CheckCircle : WarningCircle;
-  return <span className={`queue-pill risk-badge ${risk.toLowerCase()}`}><Icon size={14} weight={risk === "Low" ? "fill" : "regular"} />{risk}</span>;
-}
-
-function AiReviewBadge({ value }: { value: string }) {
-  const passed = value.includes("passed");
-  const responded = value.includes("Response");
-  const Icon = passed ? CheckCircle : responded ? Clock : WarningCircle;
-  return <span className={`queue-pill ai-review ${passed ? "passed" : responded ? "responded" : "findings"}`}><Icon size={14} weight={passed ? "fill" : "regular"} />{value}</span>;
-}
-
-function ClaimStatusBadge({ status }: { status: string }) {
-  const ready = status === "Ready";
-  const responded = status === "Employee responded";
-  const Icon = ready ? CheckCircle : responded ? Clock : WarningCircle;
-  return <span className={`queue-pill claim-status ${ready ? "ready" : responded ? "responded" : "review"}`}><Icon size={14} weight={ready ? "fill" : "regular"} />{status}</span>;
-}
-
-interface WorkspaceProps {
-  selectedExpense: Expense;
-  selectedExpenseId: string;
-  onSelectExpense: (id: string) => void;
-  onOpenFinding: (type: "duplicate" | "policy") => void;
-  duplicateAssessment: ReviewerAssessment | null;
-  policyAssessment: ReviewerAssessment | null;
-  findingsReviewed: number;
-  readyForDecision: boolean;
-  claimStatus: ClaimStatus;
-  auditEvents: AuditEvent[];
-  onClarify: () => void;
-  onReject: () => void;
-  onDecision: () => void;
-  onBackQueue: () => void;
-  onAddNote: () => void;
-  onNavigateExpense: (expense: Expense) => void;
-}
-
-function WorkspaceScreen(props: WorkspaceProps) {
-  const [zoom, setZoom] = useState(92);
-  const [ocr, setOcr] = useState(true);
-  const [tab, setTab] = useState<"receipt" | "details" | "history">("receipt");
-  const [passedOpen, setPassedOpen] = useState(false);
-  const currentFinding = props.selectedExpense.id === "hotel" ? "duplicate" : props.selectedExpense.id === "dinner" ? "policy" : null;
-  const currentAssessment = currentFinding === "duplicate" ? props.duplicateAssessment : currentFinding === "policy" ? props.policyAssessment : null;
-  return (
-    <div className="screen-frame">
-      <Rail onQueue={props.onBackQueue} />
-      <div className="screen-content">
-        <TopBar />
-        <ClaimHeader />
-        <main className="workspace-grid">
-          <ExpenseSidebar selectedId={props.selectedExpenseId} onSelect={props.onSelectExpense} duplicateAssessment={props.duplicateAssessment} policyAssessment={props.policyAssessment} />
-          <section className="evidence-column">
-            <div className="evidence-tabs">
-              <div>{(["receipt", "details", "history"] as const).map((item) => <button className={tab === item ? "active" : ""} onClick={() => setTab(item)} key={item}>{item === "receipt" ? "Evidence" : item === "details" ? "Extracted details" : "Audit trail"}</button>)}</div>
-              <button className="icon-button" aria-label="Download document"><FileArrowDown size={18} /></button>
-            </div>
-            {tab === "receipt" ? (
-              <DocumentViewer expense={props.selectedExpense} zoom={zoom} setZoom={setZoom} ocr={ocr} setOcr={setOcr} />
-            ) : tab === "details" ? (
-              <ExtractedDetails expense={props.selectedExpense} onHighlight={() => setOcr(true)} />
-            ) : (
-              <AuditTimeline events={props.auditEvents} />
-            )}
-          </section>
-          <aside className="review-panel">
-            <ProgressSteps reviewed={props.findingsReviewed} />
-            {currentFinding ? (
-              <div className="finding-detail">
-                <div className="finding-kicker"><span className={currentAssessment ? "resolved-dot" : "review-dot"} />{currentAssessment ? "Reviewed" : `Finding ${currentFinding === "duplicate" ? "1" : "2"} of 2`}<CaretUp size={15} /></div>
-                <div className="finding-heading"><h2>{currentFinding === "duplicate" ? "Possible duplicate" : "Policy exception"}</h2><span className="confidence">{currentFinding === "duplicate" ? "82" : "94"}% confidence</span></div>
-                {currentAssessment ? (
-                  <AssessmentResult assessment={currentAssessment} />
-                ) : currentFinding === "duplicate" ? (
-                  <>
-                    <p>A similar hotel expense was found in Jonas Weber’s claim EXP-2798. Review the matching and conflicting evidence before deciding.</p>
-                    <EvidenceMatrix />
-                    <button className="primary full" onClick={() => props.onOpenFinding("duplicate")}>Open comparison <ArrowRight size={17} /></button>
-                  </>
-                ) : (
-                  <>
-                    <p>The dinner amount is above the international evening meal allowance.</p>
-                    <div className="policy-mini"><div><span>Submitted</span><strong>€68.00</strong></div><div><span>Policy limit</span><strong>€50.00</strong></div><div className="over"><span>Above limit</span><strong>+€18.00</strong></div></div>
-                    <button className="primary full" onClick={() => props.onOpenFinding("policy")}>Review policy <ArrowRight size={17} /></button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="clean-expense">
-                <CheckCircle size={38} weight="duotone" />
-                <h2>All checks passed</h2>
-                <p>Receipt details match the submitted expense and no policy exceptions were found.</p>
-                <div className="clean-list"><span><Check size={15} /> Amount matched</span><span><Check size={15} /> Date within trip</span><span><Check size={15} /> Required document present</span></div>
-              </div>
-            )}
-            <button className="accordion-row" onClick={() => props.onNavigateExpense(claim.expenses[2])}><span><WarningCircle size={18} /> Policy exception</span><span>{props.policyAssessment ? "Reviewed" : "Finding 2"}<CaretRight size={14} /></span></button>
-            <button className="accordion-row" onClick={() => setPassedOpen(!passedOpen)}><span><CheckCircle size={18} /> Passed checks</span><span>6 {passedOpen ? <CaretUp size={14} /> : <CaretDown size={14} />}</span></button>
-            {passedOpen && <div className="passed-list"><span><Check size={14} /> Identity matched</span><span><Check size={14} /> Currency identified</span><span><Check size={14} /> Dates within trip</span><span><Check size={14} /> Documents legible</span><span><Check size={14} /> Merchant extracted</span><span><Check size={14} /> Totals matched</span></div>}
-            <div className="review-actions">
-              <button className="primary" disabled={!props.readyForDecision} onClick={props.onDecision}>{props.readyForDecision ? "Review final decision" : "Approve"}</button>
-              <button className="secondary" onClick={props.onClarify}>Request clarification</button>
-              <button className="secondary danger" onClick={props.onReject}>Reject</button>
-              <button className="text-button" onClick={props.onAddNote}><NotePencil size={17} /> Add internal note</button>
-              <p><ShieldCheck size={16} /> You are responsible for the final decision.</p>
-            </div>
-          </aside>
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function ExpenseSidebar({ selectedId, onSelect, duplicateAssessment, policyAssessment }: { selectedId: string; onSelect: (id: string) => void; duplicateAssessment: ReviewerAssessment | null; policyAssessment: ReviewerAssessment | null }) {
-  return (
-    <aside className="expense-sidebar">
-      <div className="expense-sidebar-head"><strong>Expenses (4)</strong><span>{Number(!duplicateAssessment) + Number(!policyAssessment)} findings</span></div>
-      <div className="expense-list">
-        {claim.expenses.map((expense, index) => {
-          const Icon = categoryIcon[expense.category];
-          const reviewed = expense.id === "hotel" ? duplicateAssessment : expense.id === "dinner" ? policyAssessment : true;
-          return (
-            <button className={`expense-row ${selectedId === expense.id ? "selected" : ""}`} onClick={() => onSelect(expense.id)} key={expense.id}>
-              <span className="expense-index">{index + 1}</span><span className="expense-icon"><Icon size={18} weight="duotone" /></span>
-              <span className="expense-copy"><strong>{expense.merchant}</strong><small>{expense.date}</small><StatusLine expense={expense} reviewed={Boolean(reviewed)} /></span>
-              <span className="expense-amount">{money(expense.amount)}</span>
+    <aside className="expense-panel">
+      <div>
+        <header><strong>Expenses (4)</strong><span>2 findings</span></header>
+        <div className="expense-list">
+          {expenses.map(({ id, merchant, date, amount, state, tone }) => (
+            <button className={`expense ${selected === id ? "selected" : ""}`} key={id} onClick={() => onSelect(id)}>
+              <span className="expense-icon">
+                {id === "hotel"
+                  ? <Bed size={18} />
+                  : <FigmaIcon
+                      className={id === "meal" ? "source-mirrored" : undefined}
+                      name={id === "taxi" ? "car" : id === "meal" ? "meal" : "flight"}
+                      size={18}
+                    />}
+              </span>
+              <span className="expense-copy"><strong>{merchant}</strong><small>{date}</small><em className={tone}><i><FigmaIcon name={tone === "success" ? "status-secondary" : tone === "danger" ? "copy" : "receipt"} size={tone === "success" ? 10 : 14} /></i>{state}</em></span>
+              <span className="expense-amount">{amount.replace(" ", "\u00a0")}</span>
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
-      <div className="expense-total"><div><span>Total submitted</span><strong>{money(claim.total)}</strong></div><div><span>Documents</span><strong>4 of 4</strong></div></div>
+      <footer>
+        <span>Total submitted <b>RWF&nbsp; 1,747,200</b></span>
+        <span>Documents <b>4 of 4</b></span>
+      </footer>
     </aside>
   );
 }
 
-function StatusLine({ expense, reviewed }: { expense: Expense; reviewed: boolean }) {
-  if (expense.status === "verified") return <span className="status-line verified"><CheckCircle size={14} weight="fill" /> Verified</span>;
-  if (reviewed) return <span className="status-line resolved"><CheckCircle size={14} weight="fill" /> Reviewed</span>;
-  return <span className="status-line review"><span />{expense.status === "possible-duplicate" ? "Possible duplicate" : "Policy exception"}</span>;
-}
-
-function DocumentViewer({ expense, zoom, setZoom, ocr, setOcr }: { expense: Expense; zoom: number; setZoom: (value: number) => void; ocr: boolean; setOcr: (value: boolean) => void }) {
-  const [rotation, setRotation] = useState(0);
+function EvidenceView({ expense, zoom, onZoom }: { expense: ExpenseId; zoom: number; onZoom: (zoom: number) => void }) {
+  const document = expenseDocuments[expense];
   return (
-    <div className="document-viewer">
-      <div className="document-meta"><div><strong>{expense.document.name}</strong><span>1 of 1 · {expense.document.id}</span></div><span className="document-status"><CheckCircle size={15} weight="fill" /> Data extracted</span></div>
-      <div className="viewer-canvas">
-        <div className="viewer-toolbar">
-          <button onClick={() => setZoom(Math.max(55, zoom - 10))} aria-label="Zoom out"><Minus size={17} /></button><span>{zoom}%</span><button onClick={() => setZoom(Math.min(130, zoom + 10))} aria-label="Zoom in"><Plus size={17} /></button>
-          <i /><button onClick={() => setRotation((rotation + 90) % 360)} aria-label="Rotate document"><ArrowClockwise size={17} /></button><button onClick={() => setZoom(92)} aria-label="Fit document"><BoundingBox size={17} /></button><button className={ocr ? "active" : ""} onClick={() => setOcr(!ocr)}><Scan size={17} /> OCR</button>
+    <div className="evidence-view">
+      <DocumentTitle expense={expense} />
+      <div className="document-stage">
+        <div className="viewer-tools">
+          <button onClick={() => onZoom(Math.max(50, zoom - 8))}><Minus size={15} /></button>
+          <span>{zoom}%</span>
+          <button onClick={() => onZoom(Math.min(130, zoom + 8))}><Plus size={15} /></button>
+          <i />
+          <button aria-label="Rotate right"><Icon icon={RotateRight01Icon} size={15} /></button>
+          <i />
+          <button aria-label="Rotate left"><Icon icon={RotateLeft01Icon} size={15} /></button>
+          <i />
+          <button><Icon icon={AiScanIcon} size={15} /> OCR</button>
         </div>
-        <div className="document-stage" style={{ width: `${zoom}%` }}>
-          <ReceiptImage asset={expense.document.asset} alt={`${expense.merchant} supporting document`} imageStyle={{ transform: `rotate(${rotation}deg)` }} />
-          {ocr && <div className="ocr-overlay" aria-label="OCR highlights"><span className="ocr-box one" /><span className="ocr-box two" /><span className="ocr-box three" /><span className="ocr-box four" /></div>}
-        </div>
+        <picture className="invoice-picture" style={{ width: `${Math.min(96, zoom * 1.02)}%` }}>
+          {document.avif && <source srcSet={document.avif} type="image/avif" />}
+          <img className="invoice invoice-main" src={document.image} alt={document.alt} />
+        </picture>
       </div>
     </div>
   );
 }
 
-function ExtractedDetails({ expense, onHighlight }: { expense: Expense; onHighlight: () => void }) {
+function DocumentTitle({ expense }: { expense: ExpenseId }) {
+  const document = expenseDocuments[expense];
   return (
-    <div className="details-view"><div className="details-heading"><div><h2>Extracted details</h2><p>Select a value to locate it on the document.</p></div><span>98% extraction quality</span></div>
-      <div className="details-grid">{expense.document.extractedFields.map((field) => <button onClick={onHighlight} key={field.label}><span>{field.label}</span><strong>{field.value}</strong><Scan size={16} /></button>)}</div>
-      <div className="details-card"><Info size={20} /><div><strong>How extraction is used</strong><p>These values support automated checks. The original document remains the source of truth.</p></div></div>
+    <div className="document-title">
+      <div><strong>{document.title}</strong><small>1 of 1 · {document.id}</small></div>
+      <span><FileText size={13} weight="fill" /> Data extracted</span>
     </div>
   );
 }
 
-function AuditTimeline({ events }: { events: AuditEvent[] }) {
-  return <div className="audit-view"><div className="details-heading"><div><h2>Audit trail</h2><p>Every system and reviewer action on this claim is traceable.</p></div><span>{events.length} events</span></div><div className="timeline">{[...events].reverse().map((event) => <div className="timeline-event" key={event.id}><span className="timeline-dot" /><div><strong>{event.label}</strong><p>{event.detail}</p><small>{event.actor} · {event.timestamp}</small></div></div>)}</div></div>;
-}
-
-function EvidenceMatrix() {
-  return <div className="evidence-matrix"><div><span><CheckCircle size={18} /> Matching signals</span><p>Hotel</p><p>Conference dates</p><p>Nightly rate</p></div><div><span><Minus size={18} /> Conflicting signals</span><p>Guest</p><p>Room & invoice</p><p>Payment reference</p></div></div>;
-}
-
-function AssessmentResult({ assessment }: { assessment: ReviewerAssessment }) {
-  return <div className="assessment-result"><CheckCircle size={22} weight="fill" /><div><strong>{assessment.decision}</strong><p>{assessment.reason}</p>{assessment.adjustedAmount !== undefined && <span>{money(assessment.adjustedAmount)} reimbursable</span>}<small>{assessment.assessedAt}</small></div></div>;
-}
-
-function ComparisonScreen({ onBack, onResolve, onClarify }: { onBack: () => void; onResolve: () => void; onClarify: () => void }) {
-  const [zoom, setZoom] = useState(64);
+function ExtractedDetails({ expense }: { expense: ExpenseId }) {
   return (
-    <div className="screen-frame comparison-frame">
-      <Rail />
-      <div className="screen-content">
-        <TopBar title="Possible duplicate comparison" onBack={onBack} />
-        <div className="comparison-heading"><div><span className="eyebrow">Claim EXP-2841 · Finding 1 of 2</span><h1>Compare the supporting evidence</h1><p>AI found matching booking signals, but the documents contain important differences.</p></div><span className="confidence">82% confidence</span></div>
-        <main className="comparison-layout">
-          <div className="comparison-docs">
-            <ComparisonDocument label="Current claim" title="Maya Chen · EXP-2841 · RGH-847362" asset="/assets/hotel-maya.png" zoom={zoom} />
-            <ComparisonDocument label="Potential match" title="Jonas Weber · EXP-2798 · RGH-847351" asset="/assets/hotel-jonas.png" zoom={zoom} />
-            <div className="sync-toolbar"><button onClick={() => setZoom(Math.max(45, zoom - 8))}><Minus size={17} /></button><span>{zoom}% · Synchronized zoom</span><button onClick={() => setZoom(Math.min(88, zoom + 8))}><Plus size={17} /></button></div>
+    <div className="details-view">
+      <DocumentTitle expense={expense} />
+      <div className="details-content">
+        <h2>Extracted details</h2>
+        {expense === "hotel" && <>
+          <DetailRow icon="detail-hotel" label="Hotel" value={<span>Riverside Grand Hotel</span>} />
+          <DetailRow icon="detail-calendar" label="Stay dates" value={<mark>8–10 May 2026</mark>} />
+          <DetailRow icon="detail-card" label="Nightly rate" value={<span>RWF 546,000</span>} />
+          <DetailRow icon="detail-user" label="Guest" value={<><mark className="blue"><i className="chip-avatar maya">J</i>Jean-Paul</mark><mark className="violet"><i className="chip-avatar jonas">J</i>Jonas W.</mark></>} />
+          <DetailRow icon="detail-scroll" label="Room" value={<><mark className="amber">#4820</mark><mark className="mint">#4819</mark></>} />
+          <DetailRow icon="detail-money" label="Invoice" value={<><mark className="amber">#847362</mark><mark className="mint">#847351</mark></>} />
+          <DetailRow icon="detail-money" label="Payment reference" value={<span>7733 / 1099</span>} />
+        </>}
+        {expense === "taxi" && <>
+          <DetailRow icon={Taxi} label="Provider" value={<span>CityCab</span>} />
+          <DetailRow icon="detail-calendar" label="Trip date" value={<mark>8 May 2026, 18:42</mark>} />
+          <DetailRow icon="detail-scroll" label="Route" value={<span>LHR → Riverside Grand Hotel</span>} />
+          <DetailRow icon="detail-card" label="Fare" value={<span>RWF 95,200</span>} />
+          <DetailRow icon="detail-user" label="Passenger" value={<mark className="blue"><i className="chip-avatar maya">J</i>Jean-Paul</mark>} />
+          <DetailRow icon="detail-money" label="Reference" value={<span>CC-LHR-80526-7481</span>} />
+        </>}
+        {expense === "meal" && <>
+          <DetailRow icon={ForkKnife} label="Restaurant" value={<span>The Foundry Kitchen</span>} />
+          <DetailRow icon="detail-calendar" label="Date" value={<mark>9 May 2026, 20:14</mark>} />
+          <DetailRow icon="detail-scroll" label="Category" value={<span>Business dinner · 4 attendees</span>} />
+          <DetailRow icon="detail-card" label="Submitted" value={<mark className="amber">RWF 95,200</mark>} />
+          <DetailRow icon="detail-money" label="Policy limit" value={<mark className="mint">RWF 70,000</mark>} />
+          <DetailRow icon="detail-money" label="Difference" value={<span>+RWF 25,200</span>} />
+        </>}
+        {expense === "flight" && <>
+          <DetailRow icon={AirplaneTilt} label="Airline" value={<span>Lufthansa</span>} />
+          <DetailRow icon="detail-calendar" label="Travel date" value={<mark>12 May 2026, 17:25</mark>} />
+          <DetailRow icon="detail-scroll" label="Route" value={<span>London Heathrow → Kigali</span>} />
+          <DetailRow icon="detail-card" label="Fare" value={<span>RWF 464,800</span>} />
+          <DetailRow icon="detail-user" label="Passenger" value={<mark className="blue"><i className="chip-avatar maya">J</i>Jean-Paul</mark>} />
+          <DetailRow icon="detail-money" label="Booking reference" value={<span>LH6K2P</span>} />
+        </>}
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ icon, label, value }: { icon: string | React.ComponentType<IconProps>; label: string; value: React.ReactNode }) {
+  const RowIcon = typeof icon === "string" ? null : icon;
+  return <div className="detail-row"><i>{RowIcon ? <RowIcon size={16} /> : <FigmaIcon name={icon as string} size={16} />}</i><b>{label}</b><div>{value}</div></div>;
+}
+
+function AuditTrail() {
+  const events = [
+    ["G", "linear-gradient(135deg,#80e5c4 0%,#4cc6a8 70.711%)", "Grace Uwase", "10 mins ago", "Submitted claim EXP-3027 for review"],
+    ["D", "linear-gradient(135deg,#80d9e5 0%,#59a6d9 70.711%)", "Daniel Uwimana", "25 mins ago", "Approved claim EXP-3012 by Aline Mukiza"],
+    ["P", "linear-gradient(135deg,#8e82ee 0%,#7961d6 70.711%)", "Patrick Niyonzima", "1 hour ago", "Attached a receipt to claim EXP-3024"],
+    ["T", "linear-gradient(135deg,#f58ec0 0%,#e56ba0 70.711%)", "Thierry Bizimana", "6 hours ago", "Responded to claim EXP-3042"],
+    ["E", "linear-gradient(135deg,#ff9b80 0%,#f27c73 70.711%)", "Eric Mugisha", "2 hours ago", "Attached a receipt to claim EXP-3030"],
+    ["C", "linear-gradient(135deg,#ff9b80 0%,#f27c73 70.711%)", "Claudine Ishimwe", "3 hours ago", "Flagged 3 findings on claim EXP-3021"],
+    ["S", "linear-gradient(135deg,#ffd06b 0%,#f2ad43 70.711%)", "Sandra Kamanzi", "4 hours ago", "Tagged claim EXP-3033 with categories"],
+  ] as const;
+  return (
+    <div className="audit-view">
+      <h2>Audit trail</h2>
+      <div className="timeline">
+        {events.map((event, index) => (
+          <div
+            className={`timeline-event${index === 2 || index === 4 ? " has-attachment" : index === 3 ? " has-quote" : index === 5 ? " has-tags" : ""}`}
+            key={event[2]}
+          >
+            <i style={{ backgroundImage: event[1] }}>{event[0]}</i>
+            <div><strong>{event[2]} <small>{event[3]}</small></strong><p>{event[4]}</p>
+              {index === 2 && <PdfAttachment file="Hotel_invoice_March.pdf" size="1.2 MB" />}
+              {index === 3 && <blockquote>“I have uploaded the updated mileage log and fuel receipts for the vehicle maintenance claim.”</blockquote>}
+              {index === 4 && <PdfAttachment file="Equipment_receipt.pdf" size="845 KB" />}
+              {index === 5 && <span className="audit-tags"><em>Duplicate</em><em>Over limit</em><em>Missing receipt</em></span>}
+            </div>
           </div>
-          <aside className="comparison-summary">
-            <span className="eyebrow">Comparison result</span><h2>Similar trip, different expense</h2><p>The documents share a template and booking context. Four identifiers indicate separate stays.</p>
-            <div className="comparison-rows"><CompareRow label="Hotel" current="Riverside Grand Hotel" match /><CompareRow label="Stay dates" current="8–10 May 2026" match /><CompareRow label="Nightly rate" current="€390.00" match /><CompareRow label="Guest" current="Maya Chen / Jonas Weber" /><CompareRow label="Room" current="712 / 718" /><CompareRow label="Invoice" current="847362 / 847351" /><CompareRow label="Payment reference" current="7733 / 1099" /></div>
-            <div className="ai-disclaimer"><Info size={19} /><p>AI surfaced the potential match. Your assessment determines whether this finding affects reimbursement.</p></div>
-            <div className="comparison-actions"><button className="primary full" onClick={onResolve}>Not a duplicate</button><button className="secondary full" onClick={onClarify}>Request clarification</button><button className="text-button full">Confirm duplicate</button></div>
-          </aside>
-        </main>
+        ))}
       </div>
     </div>
   );
 }
 
-function ComparisonDocument({ label, title, asset, zoom }: { label: string; title: string; asset: string; zoom: number }) {
-  return <section className="comparison-document"><div><span>{label}</span><strong>{title}</strong></div><div className="compare-canvas"><ReceiptImage asset={asset} alt={`${label} hotel invoice`} frameStyle={{ width: `${zoom}%` }} /></div></section>;
+function PdfAttachment({ file, size }: { file: string; size: string }) {
+  return (
+    <span className="pdf-attachment">
+      <span className="pdf-page">
+        <FigmaIcon name="page" size={40} />
+        <em>PDF</em>
+      </span>
+      <b>{file}<small>{size}</small></b>
+    </span>
+  );
 }
 
-function ReceiptImage({ asset, alt, frameStyle, imageStyle }: { asset: string; alt: string; frameStyle?: React.CSSProperties; imageStyle?: React.CSSProperties }) {
-  const optimizedAsset = asset.replace(/\.png$/, ".avif");
-  return <picture className="receipt-picture" style={frameStyle}>
-    <source srcSet={optimizedAsset} type="image/avif" />
-    <img src={asset} alt={alt} style={imageStyle} loading="eager" decoding="async" fetchPriority="high" />
-  </picture>;
+function ReviewPanel({ selected, onNavigate }: { selected: ExpenseId; onNavigate: Navigate }) {
+  return (
+    <aside className="review-panel">
+      <div>
+        <Progress />
+        {selected === "hotel" && <FindingCard title="Possible duplicate" confidence="82% confidence" onClick={() => onNavigate("compare")}>
+          <div className="signals">
+            <div>
+              <strong>Matching signals</strong>
+              <span><Bed size={12} /> Hotel</span>
+              <span><FigmaIcon name="signal-calendar" size={12} /> Conference dates</span>
+              <span><FigmaIcon name="signal-card" size={12} /> Nightly rate</span>
+            </div>
+            <div>
+              <strong>Conflicting signals</strong>
+              <span><FigmaIcon name="signal-user" size={12} /> Guest</span>
+              <span><FigmaIcon name="signal-scroll" size={12} /> Room &amp; invoice</span>
+              <span><FigmaIcon name="signal-money" size={12} /> Payment reference</span>
+            </div>
+          </div>
+        </FindingCard>}
+        {selected === "meal" && <FindingCard title="Policy exception" confidence="92% confidence" onClick={() => onNavigate("policy")}>
+          <div className="policy-stats"><span>Submitted<b>RWF&nbsp; 95,200</b></span><span>Policy limit<b>RWF&nbsp; 70,000</b></span><span>Above limit<b>+RWF&nbsp; 25,200</b></span></div>
+        </FindingCard>}
+        {selected === "taxi" && <VerifiedExpenseCard title="CityCab receipt verified" />}
+        {selected === "flight" && <VerifiedExpenseCard title="Lufthansa e-ticket verified" />}
+      </div>
+      <footer>
+        <FancyButton.Root variant="basic" onClick={() => onNavigate("clarify")}>Clarification</FancyButton.Root>
+        <FancyButton.Root variant="destructive" onClick={() => onNavigate("decision")}>Reject Claim</FancyButton.Root>
+        <FancyButton.Root variant="success" onClick={() => onNavigate("decision")}>Approve Claim</FancyButton.Root>
+      </footer>
+    </aside>
+  );
 }
 
-function CompareRow({ label, current, match = false }: { label: string; current: string; match?: boolean }) {
-  return <div className={match ? "match" : "different"}><span>{match ? <CheckCircle size={16} weight="fill" /> : <Minus size={16} />}{label}</span><strong>{current}</strong></div>;
+function VerifiedExpenseCard({ title }: { title: string }) {
+  return (
+    <article className="verified-expense-card">
+      <header><i><FigmaIcon name="check-square" size={18} /></i><div><strong>{title}</strong><span>No findings require attention</span></div></header>
+      <div>
+        <span><FigmaIcon name="status-secondary" size={12} /> Receipt data matched</span>
+        <span><FigmaIcon name="status-secondary" size={12} /> No duplicate found</span>
+        <span><FigmaIcon name="status-secondary" size={12} /> Policy requirements met</span>
+      </div>
+      <footer>All automated checks passed</footer>
+    </article>
+  );
 }
 
-function PolicyScreen({ onBack, onResolve, onClarify }: { onBack: () => void; onResolve: (decision: string, amount?: number) => void; onClarify: () => void }) {
+function Progress({ stage = "findings" }: { stage?: "findings" | "decision" }) {
+  return <div className={`progress progress--${stage}`} data-node-id="6144:4677">
+    <img aria-hidden="true" className="progress-connector progress-connector--left" src="/figma/progress/connector-left.svg" />
+    <img aria-hidden="true" className="progress-connector progress-connector--right" src="/figma/progress/connector-right.svg" />
+
+    <div className="progress-step progress-step--review done">
+      <i className="progress-icon">
+        <span className="progress-icon-core">
+          <img aria-hidden="true" src="/figma/progress/review-evidence.svg" />
+        </span>
+      </i>
+      <span>Review evidence</span>
+    </div>
+
+    <div className={`progress-step progress-step--resolve ${stage === "decision" ? "done" : "current"}`}>
+      <i className="progress-icon">
+        <span className="progress-icon-core">
+          <img aria-hidden="true" src={stage === "decision" ? "/figma/progress/review-evidence.svg" : "/figma/progress/resolve-findings.svg"} />
+        </span>
+      </i>
+      <span>Resolve findings</span>
+    </div>
+
+    <div className={`progress-step progress-step--decision ${stage === "decision" ? "current" : "upcoming"}`}>
+      <i className="progress-icon">
+        <span className="progress-icon-core">
+          <img aria-hidden="true" src="/figma/progress/make-decision.svg" />
+        </span>
+      </i>
+      <span>Make decision</span>
+    </div>
+  </div>;
+}
+
+function FindingCard({ title, confidence, onClick, children }: { title: string; confidence: string; onClick: () => void; children: React.ReactNode }) {
+  return <article className="finding-card">
+    <header><strong>{title}</strong><span>{confidence}</span></header>
+    {children}
+    <button onClick={onClick}>Make decision <CaretRight size={13} /></button>
+  </article>;
+}
+
+function PolicyOverlay({ onClose }: { onClose: () => void }) {
   const [choice, setChoice] = useState("limit");
-  const [reason, setReason] = useState("");
   return (
-    <div className="screen-frame policy-frame">
-      <Rail />
-      <div className="screen-content"><TopBar title="Policy exception review" onBack={onBack} />
-        <main className="policy-layout">
-          <section className="policy-evidence"><div className="section-heading"><div><span className="eyebrow">Expense 3 of 4</span><h1>The Foundry Kitchen</h1><p>9 May 2026 · Business dinner</p></div><strong>€68.00</strong></div><div className="policy-receipt"><ReceiptImage asset="/assets/dinner.png" alt="The Foundry Kitchen receipt" /></div></section>
-          <aside className="policy-panel"><ProgressSteps reviewed={1} /><div className="finding-heading"><h2>Meal allowance exceeded</h2><span className="confidence">94% confidence</span></div><p>The submitted dinner is €18.00 above the applicable international allowance.</p>
-            <div className="amount-comparison"><div><span>Submitted</span><strong>€68.00</strong></div><div><span>Policy limit</span><strong>€50.00</strong></div><div><span>Difference</span><strong>+€18.00</strong></div></div>
-            <div className="policy-excerpt"><div><FileText size={19} /><strong>{mealPolicy.name}</strong><span>Effective {mealPolicy.effectiveDate}</span></div><p>“{mealPolicy.excerpt}”</p><button className="text-link">View full policy <ArrowRight size={15} /></button></div>
-            <div className="employee-context"><span className="eyebrow">Employee context</span><strong>Dinner with regional implementation partners</strong><p>4 attendees · Receipt paid in full by Maya</p></div>
-            <fieldset className="decision-options"><legend>Reviewer decision</legend><label className={choice === "limit" ? "selected" : ""}><input type="radio" name="policy" checked={choice === "limit"} onChange={() => setChoice("limit")} /><span><strong>Reimburse policy limit only</strong><small>Approve €50.00 and exclude €18.00</small></span></label><label className={choice === "accept" ? "selected" : ""}><input type="radio" name="policy" checked={choice === "accept"} onChange={() => setChoice("accept")} /><span><strong>Accept as a valid exception</strong><small>Reimburse the full €68.00 with justification</small></span></label><label className={choice === "noncompliant" ? "selected" : ""}><input type="radio" name="policy" checked={choice === "noncompliant"} onChange={() => setChoice("noncompliant")} /><span><strong>Mark as noncompliant</strong><small>Exclude the full expense</small></span></label></fieldset>
-            {choice === "accept" && <label className="field-label">Exception justification<textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Explain why this business-hosting exception is valid" /></label>}
-            <div className="policy-actions"><button className="primary" disabled={choice === "accept" && !reason.trim()} onClick={() => onResolve(choice === "limit" ? "Reimburse policy limit" : choice === "accept" ? "Accepted exception" : "Noncompliant", choice === "limit" ? 50 : choice === "accept" ? 68 : 0)}>Save decision</button><button className="secondary" onClick={onClarify}>Request clarification</button></div>
-          </aside>
-        </main>
-      </div>
+    <div className="overlay">
+      <section className="policy-modal">
+        <header><span className="modal-title-icon"><FigmaIcon name="policy-title" size={22} /></span><h1>Meal allowance exceeded</h1><button onClick={onClose}><X size={22} /></button></header>
+        <div className="policy-body">
+          <h2>Employee Context</h2>
+          <div className="context-list">
+            <ContextRow icon="policy-purpose" label="Purpose" value="Dinner with regional implementation partners" />
+            <ContextRow icon="policy-attendees" label="Attendees" value="4 attendees" />
+            <ContextRow icon="policy-money" label="Paid by" value="Receipt paid in full by Maya" />
+            <ContextRow icon="policy-history" label="History" value="2 prior approved exceptions this quarter" />
+          </div>
+          <div className="amount-comparison"><span>Submitted<b>RWF&nbsp; 95,200</b></span><span>Policy limit<b>RWF&nbsp; 70,000</b></span><span>Difference<b>+RWF&nbsp; 25,200</b></span></div>
+          <article className="policy-note"><FigmaIcon name="policy-file" size={24} /><div><strong>International evening meal allowance</strong><small>Effective 1 January 2026</small></div><button>View full policy</button><p>“Employees travelling internationally may claim up to RWF 70,000 per person for an evening meal. Documented business-hosting exceptions require reviewer justification.”</p></article>
+          <h3>Reviewer decision</h3>
+          <div className="radio-list">
+            <Radio checked={choice === "limit"} onClick={() => setChoice("limit")} title="Reimburse policy limit only" detail="Approve RWF 70,000 and exclude RWF 25,200" />
+            <Radio checked={choice === "exception"} onClick={() => setChoice("exception")} title="Accept as a valid exception" detail="Reimburse the full RWF 95,200 with justification" />
+            <Radio checked={choice === "noncompliant"} onClick={() => setChoice("noncompliant")} title="Mark as noncompliant" detail="Exclude the full expense" />
+          </div>
+        </div>
+        <footer>
+          <FancyButton.Root variant="basic">Request clarification</FancyButton.Root>
+          <FancyButton.Root variant="primary" onClick={onClose}>Save decision</FancyButton.Root>
+        </footer>
+      </section>
     </div>
   );
 }
 
-function ClarificationScreen({ status, onBack, onSend, onReturn }: { status: ClaimStatus; onBack: () => void; onSend: (request: ClarificationRequest) => void; onReturn: () => void }) {
-  const [reasons, setReasons] = useState<string[]>(["Possible duplicate", "Policy exception"]);
-  const [docs, setDocs] = useState<string[]>(["Hotel booking confirmation"]);
-  const [dueDate, setDueDate] = useState("18 July 2026");
-  const [message, setMessage] = useState("Hello Maya,\n\nWe need a little more information before completing our review of claim EXP-2841. The hotel invoice appears similar to another conference booking. Please confirm that it relates to your stay and share the booking confirmation.\n\nPlease also add context for the €68.00 dinner, which is €18.00 above the international meal allowance.\n\nThank you,\nOlivia");
-  const sent = status === "awaiting-clarification";
-  const toggle = (value: string, values: string[], setter: (next: string[]) => void) => setter(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
-  if (sent) return <div className="screen-frame"><Rail /><div className="screen-content"><TopBar title="Request clarification" /><div className="clarification-sent"><div className="success-icon"><PaperPlaneTilt size={34} weight="fill" /></div><span className="eyebrow">Request sent</span><h1>Waiting for Maya’s response</h1><p>The claim is paused and will return to the verification queue when Maya replies.</p><div className="sent-summary"><div><span>Claim</span><strong>EXP-2841</strong></div><div><span>Response requested by</span><strong>{dueDate}</strong></div><div><span>Status</span><strong>Awaiting clarification</strong></div></div><button className="primary" onClick={onReturn}>Return to queue</button><button className="text-button" onClick={onBack}>View claim</button></div></div></div>;
+function ContextRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+  return <div><i><FigmaIcon name={icon} size={16} /></i><b>{label}</b><span>{value}</span></div>;
+}
+
+function Radio({ checked, onClick, title, detail }: { checked: boolean; onClick: () => void; title: string; detail: string }) {
+  return <button className={checked ? "checked" : ""} onClick={onClick}><i>{checked && <FigmaIcon name="policy-radio" size={14} />}</i><span><strong>{title}</strong><small>{detail}</small></span></button>;
+}
+
+function ComparisonOverlay({ onClose }: { onClose: () => void }) {
   return (
-    <div className="screen-frame clarification-frame"><Rail /><div className="screen-content"><TopBar title="Request clarification" onBack={onBack} /><main className="clarification-layout">
-      <section className="clarification-context"><span className="eyebrow">Claim EXP-2841</span><h1>What do you need from Maya?</h1><p>Select the unresolved questions. The message draft remains fully editable before it is sent.</p><div className="context-claim"><div className="person-cell"><span>MC</span><div><strong>Maya Chen</strong><small>Operations · Berlin</small></div></div><strong>€1,248.00</strong></div>
-        <fieldset className="check-group"><legend>Clarification reasons</legend>{["Possible duplicate", "Policy exception", "Missing document", "Expense purpose unclear", "Amount mismatch"].map((item) => <label key={item}><input type="checkbox" checked={reasons.includes(item)} onChange={() => toggle(item, reasons, setReasons)} /><span><Check size={13} />{item}</span></label>)}</fieldset>
-        <fieldset className="check-group"><legend>Request supporting documents</legend>{["Hotel booking confirmation", "Attendee list", "Payment statement"].map((item) => <label key={item}><input type="checkbox" checked={docs.includes(item)} onChange={() => toggle(item, docs, setDocs)} /><span><Paperclip size={14} />{item}</span></label>)}</fieldset>
+    <div className="overlay">
+      <section className="compare-modal">
+        <header><span className="modal-title-icon"><FigmaIcon name="compare-title" size={31} /></span><h1>Compare the supporting evidence</h1><button onClick={onClose}><X size={22} /></button></header>
+        <main>
+          <div className="compare-document">
+            <div className="compare-label"><span>Current claim</span><strong>Maya Chen · EXP-2841 · RGH-847362</strong></div>
+            <picture>
+              <source srcSet="/assets/hotel-maya.avif" type="image/avif" />
+              <img src="/assets/hotel-maya.png" alt="Current claim hotel invoice" />
+            </picture>
+          </div>
+          <div className="compare-document">
+            <div className="compare-label"><span>Potential match</span><strong>Jonas Weber · EXP-2798 · RGH-847351</strong></div>
+            <picture>
+              <source srcSet="/assets/hotel-jonas.avif" type="image/avif" />
+              <img src="/assets/hotel-jonas.png" alt="Potential matching hotel invoice" />
+            </picture>
+          </div>
+          <div className="comparison-facts">
+            <h2>Similarities</h2>
+            <DetailRow icon={Bed} label="Hotel" value={<span>Riverside Grand Hotel</span>} />
+            <DetailRow icon="signal-calendar" label="Stay dates" value={<mark>05 Sep 2025, 10:32 AM</mark>} />
+            <DetailRow icon="signal-card" label="Nightly rate" value={<span>RWF 546,000</span>} />
+            <h2>Differences</h2>
+            <DetailRow icon="signal-user" label="Guest" value={<><mark className="blue"><i className="chip-avatar maya">M</i>Maya Chen</mark><mark className="violet"><i className="chip-avatar jonas">J</i>Jonas W.</mark></>} />
+            <DetailRow icon="signal-scroll" label="Room" value={<><mark className="amber">#4820</mark><mark className="mint">#4819</mark></>} />
+            <DetailRow icon="signal-card" label="Invoice" value={<><mark className="amber">#847362</mark><mark className="mint">#847351</mark></>} />
+            <DetailRow icon="signal-money" label="Payment reference" value={<span>7733 / 1099</span>} />
+          </div>
+          <div className="sync-zoom"><Minus size={15} /><span>64% · Synchronized zoom</span><Plus size={15} /></div>
+        </main>
+        <footer>
+          <FancyButton.Root variant="basic" onClick={onClose}>Confirm</FancyButton.Root>
+          <FancyButton.Root variant="basic">Request clarification</FancyButton.Root>
+          <FancyButton.Root variant="primary" onClick={onClose}>Not a duplicate</FancyButton.Root>
+        </footer>
       </section>
-      <section className="composer"><div className="composer-head"><div><span className="ai-label"><SealCheck size={16} weight="fill" /> AI-assisted draft</span><h2>Message to Maya Chen</h2></div><button className="text-button" onClick={() => setMessage("")}>Clear draft</button></div><label className="field-label">Message<textarea className="message-area" value={message} onChange={(event) => setMessage(event.target.value)} /></label><div className="composer-row"><label className="field-label">Response due<input value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label><button className="attachment-button"><Paperclip size={18} /> Add attachment</button></div><div className="composer-footer"><span><Info size={17} /> You control and send this message.</span><div><button className="secondary">Save draft</button><button className="primary" disabled={!reasons.length || !message.trim()} onClick={() => onSend({ reasons, requestedDocuments: docs, dueDate, message })}>Send request <PaperPlaneTilt size={17} /></button></div></div></section>
-    </main></div></div>
+    </div>
   );
 }
 
-function DecisionScreen({ duplicateAssessment, policyAssessment, reimbursable, excludedAmount, onBack, onReject, onApprove }: { duplicateAssessment: ReviewerAssessment; policyAssessment: ReviewerAssessment; reimbursable: number; excludedAmount: number; onBack: () => void; onReject: () => void; onApprove: () => void }) {
+function ApprovedOverlay({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="overlay approved-overlay">
+      <section className="approved-modal">
+        <div className="approved-icon"><img src="/figma/success-icon.svg" alt="" /></div>
+        <h1>Claim approved</h1>
+        <p>RWF 1,722,000 is approved for reimbursement.<br />Maya has been notified of the policy adjustment.</p>
+        <article>
+          <header><strong>Approved reimbursement</strong><b>RWF&nbsp; 1,722,000</b></header>
+          <div><span>Submitted</span><strong>RWF 1,747,200</strong></div>
+          <div><span>Excluded under policy</span><strong>RWF 25,200</strong></div>
+          <div><span>Decision by</span><strong>Olivia Harper</strong></div>
+          <div><span>Recorded</span><strong>15 July 2026, 10:32</strong></div>
+        </article>
+        <div className="notification"><Info size={17} weight="fill" /><div><strong>Employee notification sent</strong><span>Decision details and the RWF 25,200 adjustment were sent to Maya Chen.</span></div></div>
+        <FancyButton.Root variant="success" className="next-claim" onClick={onNext}>
+          Review next claim
+          <FancyButton.Icon><CaretRight size={16} /></FancyButton.Icon>
+        </FancyButton.Root>
+      </section>
+    </div>
+  );
+}
+
+function FlowPageShell({ children, onBack }: { children: React.ReactNode; onBack: () => void }) {
+  return (
+    <div className="flow-screen">
+      <Rail onQueue={onBack} />
+      <ClaimHeader onBack={onBack} />
+      {children}
+    </div>
+  );
+}
+
+function ClarificationModal({ onClose, onReturn }: { onClose: () => void; onReturn: () => void }) {
+  const [sent, setSent] = useState(false);
+  const [reasons, setReasons] = useState(["Possible duplicate", "Policy exception"]);
+  const [documents, setDocuments] = useState(["Hotel booking confirmation"]);
+  const [dueDate, setDueDate] = useState("18 July 2026");
+  const [openDropdown, setOpenDropdown] = useState<"reasons" | "documents" | null>(null);
+  const [message, setMessage] = useState(
+    "Hello Jean-Paul,\n\nWe need a little more information before completing our review of claim EXP-2841. The hotel invoice appears similar to another conference booking. Please confirm that it relates to your stay and share the booking confirmation.\n\nPlease also add context for the RWF 95,200 dinner, which is RWF 25,200 above the international meal allowance.\n\nThank you,\nOlivia",
+  );
+
+  const toggle = (value: string, values: string[], setValues: (next: string[]) => void) => {
+    setValues(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
+  };
+
+  if (sent) {
+    return (
+      <div className="overlay clarification-overlay">
+        <section className="clarification-modal clarification-complete" role="dialog" aria-modal="true" aria-labelledby="clarification-success-title">
+          <button className="clarification-close" aria-label="Close clarification confirmation" onClick={onClose}><X size={20} /></button>
+          <div className="clarification-success-icon"><FigmaIcon name="mail-validation" size={34} /></div>
+          <span className="flow-eyebrow">Request sent</span>
+          <h1 id="clarification-success-title">Waiting for Jean-Paul’s response</h1>
+          <p>The claim is paused and will return to the verification queue when the employee replies.</p>
+          <div className="clarification-summary">
+            <span><small>Claim</small><strong>EXP-2841</strong></span>
+            <span><small>Response requested by</small><strong>{dueDate}</strong></span>
+            <span><small>Status</small><strong>Awaiting clarification</strong></span>
+          </div>
+          <div className="flow-complete-actions">
+            <FancyButton.Root variant="basic" onClick={onClose}>View claim</FancyButton.Root>
+            <FancyButton.Root variant="primary" onClick={onReturn}>Return to queue</FancyButton.Root>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overlay clarification-overlay">
+      <section className="clarification-modal" role="dialog" aria-modal="true" aria-labelledby="clarification-title">
+        <header>
+          <div className="clarification-heading">
+            <h1 id="clarification-title">Request clarification</h1>
+            <p>Message to Jean-Paul Habimana · Claim EXP-2841</p>
+          </div>
+          <button className="clarification-close" aria-label="Close clarification request" onClick={onClose}><X size={20} /></button>
+        </header>
+
+        <div className="clarification-modal-body">
+          <article className="clarification-claim-context">
+            <span className="claim-avatar">J</span>
+            <div><strong>Jean-Paul Habimana</strong><small>Operations · Kigali</small></div>
+            <b>RWF&nbsp; 1,747,200</b>
+          </article>
+
+          <div className="clarification-dropdown-grid">
+            <ClarificationDropdown
+              title="Clarification reasons"
+              placeholder="Select reasons"
+              options={["Possible duplicate", "Policy exception", "Missing document", "Expense purpose unclear", "Amount mismatch"]}
+              selected={reasons}
+              onToggle={(item) => toggle(item, reasons, setReasons)}
+              open={openDropdown === "reasons"}
+              onOpenChange={(open) => setOpenDropdown(open ? "reasons" : null)}
+            />
+            <ClarificationDropdown
+              title="Request supporting documents"
+              placeholder="Select documents"
+              options={["Hotel booking confirmation", "Attendee list", "Payment statement"]}
+              selected={documents}
+              onToggle={(item) => toggle(item, documents, setDocuments)}
+              open={openDropdown === "documents"}
+              onOpenChange={(open) => setOpenDropdown(open ? "documents" : null)}
+            />
+          </div>
+
+          <label className="flow-field clarification-message">
+            <span>Message</span>
+            <textarea value={message} onChange={(event) => setMessage(event.target.value)} />
+          </label>
+
+          <div className="composer-controls">
+            <label className="flow-field"><span>Response due</span><input value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label>
+            <button className="attachment-control"><FigmaIcon name="page" size={17} /> Add attachment</button>
+          </div>
+        </div>
+        <footer className="clarification-footer">
+          <span><Info size={16} /> You control and send this message.</span>
+          <div>
+            <button className="clear-draft" onClick={() => setMessage("")}>Clear draft</button>
+            <FancyButton.Root variant="basic">Save draft</FancyButton.Root>
+            <FancyButton.Root variant="primary" disabled={!reasons.length || !message.trim()} onClick={() => setSent(true)}>
+              Send request
+            </FancyButton.Root>
+          </div>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function ClarificationDropdown({
+  title,
+  placeholder,
+  options,
+  selected,
+  onToggle,
+  open,
+  onOpenChange,
+}: {
+  title: string;
+  placeholder: string;
+  options: string[];
+  selected: string[];
+  onToggle: (item: string) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const selectionLabel = selected.length
+    ? selected.length === 1
+      ? selected[0]
+      : `${selected.length} selected`
+    : placeholder;
+
+  return (
+    <div className={`clarification-dropdown${open ? " open" : ""}`}>
+      <span className="clarification-dropdown-label">{title}</span>
+      <Dropdown.Root open={open} onOpenChange={onOpenChange}>
+        <Dropdown.Trigger asChild>
+          <button
+            className="align-select-trigger clarification-dropdown-trigger"
+            type="button"
+            aria-label={title}
+          >
+            <span>{selectionLabel}</span>
+            <CaretDown size={16} className="align-select-arrow" />
+          </button>
+        </Dropdown.Trigger>
+        <Dropdown.Content className="clarification-dropdown-menu">
+          {options.map((item) => {
+            const isSelected = selected.includes(item);
+            return (
+              <Dropdown.CheckboxItem
+                checked={isSelected}
+                key={item}
+                onCheckedChange={() => onToggle(item)}
+              >
+                {item}
+              </Dropdown.CheckboxItem>
+            );
+          })}
+        </Dropdown.Content>
+      </Dropdown.Root>
+    </div>
+  );
+}
+
+function DecisionModal({ onBack, onApprove, onReject }: { onBack: () => void; onApprove: () => void; onReject: () => void }) {
   const [acknowledged, setAcknowledged] = useState(false);
   return (
-    <div className="screen-frame decision-frame"><Rail /><div className="screen-content"><TopBar title="Final decision review" onBack={onBack} /><main className="decision-page"><div className="decision-heading"><ProgressSteps reviewed={2} decision /><span className="eyebrow">Ready for your decision</span><h1>Review the final reimbursement</h1><p>AI findings have been assessed. Confirm the evidence and outcome before approving.</p></div>
-      <div className="decision-grid"><section className="review-summary"><h2>Review results</h2><DecisionFinding title="Possible duplicate" result={duplicateAssessment.decision} detail={duplicateAssessment.reason} /><DecisionFinding title="Policy exception" result={policyAssessment.decision} detail={policyAssessment.adjustedAmount === 50 ? "€50.00 reimbursable · €18.00 excluded" : policyAssessment.reason} /><DecisionFinding title="Automated checks" result="6 checks passed" detail="Identity, dates, currency, document quality, merchant and totals" passed /></section>
-        <aside className="reimbursement-card"><span className="eyebrow">Reimbursement</span><div><span>Submitted</span><strong>{money(claim.total)}</strong></div><div><span>Excluded</span><strong className="negative">−{money(excludedAmount)}</strong></div><i /><div className="final-amount"><span>Final reimbursement</span><strong>{money(reimbursable)}</strong></div><p><Info size={16} /> Maya will be notified of the €18.00 policy adjustment.</p></aside></div>
-      <label className="acknowledgement"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /><span><Check size={14} /></span><p>I have reviewed the supporting evidence and AI findings and am making this decision based on the available information.</p></label>
-      <div className="final-actions"><button className="secondary danger" onClick={onReject}>Reject claim</button><button className="secondary" onClick={onBack}>Return to review</button><button className="primary large" disabled={!acknowledged} onClick={onApprove}>Approve {money(reimbursable)} <ArrowRight size={18} /></button></div>
-    </main></div></div>
+    <div className="overlay decision-overlay">
+      <section className="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-title">
+        <header className="decision-modal-header">
+          <div className="clarification-heading">
+            <h1 id="decision-title">Review the final reimbursement</h1>
+            <p>Both findings have been assessed. Confirm the evidence and outcome before recording a decision.</p>
+          </div>
+          <button className="clarification-close" aria-label="Close final decision review" onClick={onBack}><X size={20} /></button>
+        </header>
+        <div className="decision-modal-body">
+          <section className="decision-results">
+            <h2>Review results</h2>
+            <DecisionResult icon="copy" title="Possible duplicate" detail="Different guests, invoice numbers, rooms, and payment references" result="Not a duplicate" />
+            <DecisionResult icon="receipt" title="Policy exception" detail="RWF 70,000 reimbursable · RWF 25,200 excluded" result="Policy limit applied" />
+            <DecisionResult icon="check-square" title="Automated checks" detail="Identity, dates, currency, document quality, merchant, and totals" result="6 checks passed" passed />
+          </section>
+          <section className="reimbursement-summary">
+            <h2>Reimbursement</h2>
+            <div className="reimbursement-metrics">
+              <div><span>Submitted</span><strong>RWF&nbsp; 1,747,200</strong></div>
+              <div><span>Excluded</span><strong className="negative">−RWF&nbsp; 25,200</strong></div>
+            </div>
+            <div className="final-total"><span>Final reimbursement</span><strong>RWF&nbsp; 1,722,000</strong></div>
+            <p><Info size={16} /> Jean-Paul will be notified of the policy adjustment.</p>
+          </section>
+          <label className="decision-acknowledgement">
+            <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />
+            <i>{acknowledged && <Check size={13} />}</i>
+            <span>I have reviewed the supporting evidence and AI findings and am making this decision based on the available information.</span>
+          </label>
+        </div>
+        <footer className="decision-actions">
+          <FancyButton.Root variant="destructive" onClick={onReject}>Reject claim</FancyButton.Root>
+          <FancyButton.Root variant="basic" onClick={onBack}>Return to review</FancyButton.Root>
+          <FancyButton.Root variant="success" disabled={!acknowledged} onClick={onApprove}>Approve RWF 1,722,000</FancyButton.Root>
+        </footer>
+      </section>
+    </div>
   );
 }
 
-function DecisionFinding({ title, result, detail, passed = false }: { title: string; result: string; detail: string; passed?: boolean }) {
-  return <div className="decision-finding"><span className={passed ? "passed" : "reviewed"}>{passed ? <Check size={17} /> : <SealCheck size={17} />}</span><div><strong>{title}</strong><p>{detail}</p></div><span>{result}</span></div>;
-}
-
-function CompleteScreen({ reimbursable, excludedAmount, auditEvents, onNext }: { reimbursable: number; excludedAmount: number; auditEvents: AuditEvent[]; onNext: () => void }) {
-  const [historyOpen, setHistoryOpen] = useState(false);
+function DecisionResult({ icon, title, detail, result, passed = false }: { icon: string; title: string; detail: string; result: string; passed?: boolean }) {
   return (
-    <div className="screen-frame complete-frame"><Rail /><div className="screen-content"><TopBar /><main className="complete-page"><div className="complete-hero"><div className="success-icon"><Check size={38} weight="bold" /></div><span className="eyebrow">Decision recorded</span><h1>Claim approved</h1><p>{money(reimbursable)} is approved for reimbursement. Maya has been notified of the policy adjustment.</p></div>
-      <div className="complete-card"><div className="approved-amount"><span>Approved reimbursement</span><strong>{money(reimbursable)}</strong></div><div className="complete-details"><div><span>Submitted</span><strong>{money(claim.total)}</strong></div><div><span>Excluded under policy</span><strong>{money(excludedAmount)}</strong></div><div><span>Decision by</span><strong>{claim.reviewer}</strong></div><div><span>Recorded</span><strong>15 July 2026, 10:32</strong></div></div><div className="notification-row"><CheckCircle size={19} weight="fill" /><div><strong>Employee notification sent</strong><p>Decision details and the €18.00 adjustment were sent to Maya Chen.</p></div></div></div>
-      <div className="complete-actions"><button className="secondary" onClick={() => setHistoryOpen(!historyOpen)}>View audit history {historyOpen ? <CaretUp size={16} /> : <CaretDown size={16} />}</button><button className="primary large" onClick={onNext}>Review next claim <ArrowRight size={18} /></button></div>{historyOpen && <div className="complete-timeline"><AuditTimeline events={auditEvents} /></div>}</main></div></div>
+    <article className="decision-result">
+      <i className={passed ? "passed" : ""}><FigmaIcon name={icon} size={16} /></i>
+      <div><strong>{title}</strong><p>{detail}</p></div>
+      <span>{result}</span>
+    </article>
   );
 }
 
-function ReasonDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (reason: string) => void }) {
-  const [reason, setReason] = useState("");
-  const reasons = ["Different employee / attendee", "Separate legitimate expense", "Shared group booking", "AI incorrectly matched"];
-  return <ModalShell title="Why is this not a duplicate?" onClose={onClose}><p className="modal-intro">Your reason becomes part of the audit trail and helps improve future matching.</p><div className="reason-list">{reasons.map((item) => <label className={reason === item ? "selected" : ""} key={item}><input type="radio" name="reason" checked={reason === item} onChange={() => setReason(item)} /><span>{item}</span></label>)}</div><div className="modal-actions"><button className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={!reason} onClick={() => onSubmit(reason)}>Resolve finding</button></div></ModalShell>;
-}
-
-function RejectDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (reason: string) => void }) {
+function RejectOverlay({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
-  return <ModalShell title="Reject claim" onClose={onClose} danger><p className="modal-intro">Maya will see the rejection reason. The internal note remains visible only to reviewers.</p><label className="field-label">Rejection reason<select value={reason} onChange={(event) => setReason(event.target.value)}><option value="">Select a reason</option><option>Confirmed duplicate expense</option><option>Unsupported business purpose</option><option>Expense outside company policy</option><option>Insufficient evidence</option></select></label><label className="field-label">Internal note<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add the evidence behind this decision" /></label><div className="modal-actions"><button className="secondary" onClick={onClose}>Cancel</button><button className="primary destructive" disabled={!reason || !note.trim()} onClick={() => onSubmit(`${reason}: ${note}`)}>Reject claim</button></div></ModalShell>;
-}
-
-function NoteDialog({ onClose, onSubmit }: { onClose: () => void; onSubmit: (note: string) => void }) {
-  const [note, setNote] = useState("");
-  return <ModalShell title="Add internal note" onClose={onClose}><p className="modal-intro">Only Verification Officers and Finance administrators can see this note.</p><label className="field-label">Note<textarea autoFocus value={note} onChange={(event) => setNote(event.target.value)} placeholder="Capture context for another reviewer" /></label><div className="modal-actions"><button className="secondary" onClick={onClose}>Cancel</button><button className="primary" disabled={!note.trim()} onClick={() => onSubmit(note)}>Save note</button></div></ModalShell>;
-}
-
-function ModalShell({ title, children, onClose, danger = false }: { title: string; children: React.ReactNode; onClose: () => void; danger?: boolean }) {
-  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}><section className={`modal ${danger ? "danger-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="modal-title"><header><div className="modal-icon">{danger ? <WarningCircle size={22} /> : <SealCheck size={22} />}</div><h2 id="modal-title">{title}</h2><button className="icon-button" onClick={onClose} aria-label="Close dialog"><X size={19} /></button></header>{children}</section></div>;
-}
-
-function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
-  return <div className="toast" role="status"><CheckCircle size={20} weight="fill" /><span>{message}</span><button onClick={onDismiss} aria-label="Dismiss"><X size={16} /></button></div>;
+  return (
+    <div className="overlay">
+      <section className="reject-modal">
+        <header><span><FigmaIcon name="receipt" size={20} /></span><h1>Reject claim</h1><button onClick={onClose}><X size={20} /></button></header>
+        <div className="reject-body">
+          <p>Jean-Paul will see the rejection reason. The internal note remains visible only to reviewers.</p>
+          <label className="flow-field">
+            <span>Rejection reason</span>
+            <Select.Root value={reason} onValueChange={setReason}>
+              <Select.Trigger aria-label="Rejection reason">
+                <Select.Value placeholder="Select a reason" />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="Confirmed duplicate expense">Confirmed duplicate expense</Select.Item>
+                <Select.Item value="Unsupported business purpose">Unsupported business purpose</Select.Item>
+                <Select.Item value="Expense outside company policy">Expense outside company policy</Select.Item>
+                <Select.Item value="Insufficient evidence">Insufficient evidence</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </label>
+          <label className="flow-field"><span>Internal note</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add the evidence behind this decision" /></label>
+        </div>
+        <footer>
+          <FancyButton.Root variant="basic" onClick={onClose}>Cancel</FancyButton.Root>
+          <FancyButton.Root variant="destructive" disabled={!reason || !note.trim()} onClick={onDone}>Reject claim</FancyButton.Root>
+        </footer>
+      </section>
+    </div>
+  );
 }

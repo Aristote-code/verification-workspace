@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Extracted details — Figma comparison</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 32px;
+        color: #1f2329;
+        background: #eef0f4;
+        font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      figure {
+        margin: 0;
+        overflow: hidden;
+        border: 1px solid #d9dce3;
+        border-radius: 12px;
+        background: white;
+      }
+      figcaption {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e4e6eb;
+        font-weight: 650;
+      }
+      .image {
+        min-height: 430px;
+        padding: 24px;
+        display: grid;
+        place-items: start center;
+        background: #fff;
+      }
+      img { display: block; width: 100%; height: auto; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <figure>
+        <figcaption>Figma source · 6144:4474</figcaption>
+        <div class="image"><img src="./00-figma-reference.png" alt="Figma source" /></div>
+      </figure>
+      <figure>
+        <figcaption>Implemented component</figcaption>
+        <div class="image"><img src="./03-after-details-component.png" alt="Implemented component" /></div>
+      </figure>
+    </main>
+  </body>
+</html>
