@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap");
-
 @font-face {
   font-family: "Certia";
   src: url("/fonts/Certia-Regular.otf") format("opentype");
@@ -41,7 +39,7 @@
 }
 
 :root {
-  font-family: "Certia", Inter, Arial, sans-serif;
+  font-family: "Certia", Arial, sans-serif;
   color: #171a1f;
   background: #fff;
   font-synthesis: none;
@@ -63,7 +61,7 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
 .rotate-180 { transform: rotate(180deg); }
 .source-arrow-left { transform: rotate(-90deg) scaleX(-1); }
 .source-mirrored { transform: rotate(180deg) scaleX(-1); }
-.mono, .expense-amount, .requested strong, .expense-panel footer b, .policy-stats b, .amount-comparison b, .approved-modal article b { font-family: "Geist Mono", monospace; }
+.mono, .expense-amount, .requested strong, .expense-panel footer b, .policy-stats b, .amount-comparison b, .approved-modal article b { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
 
 /* Shared rail */
 .rail { z-index: 30; position: fixed; inset: 0 auto 0 0; width: 62px; height: 100dvh; min-height: 720px; padding: 18px 15px; display: flex; flex-direction: column; align-items: center; background: #fafafa; border-right: 1px solid var(--soft-line); }

@@ -37,6 +37,7 @@ import * as FancyButton from "@/components/ui/fancy-button";
 import * as Dropdown from "@/components/ui/dropdown";
 import * as Select from "@/components/ui/select";
 import { Icon, type IconData } from "./components/Icon";
+import { getFigmaAsset } from "./figma-assets";
 
 type IconProps = { size?: number; weight?: string; className?: string };
 
@@ -55,8 +56,9 @@ function FigmaIcon({
     <img
       alt={alt}
       className={`figma-icon${className ? ` ${className}` : ""}`}
+      decoding="async"
       height={size}
-      src={`/figma/icons/${name}.svg`}
+      src={getFigmaAsset(`icons/${name}`)}
       width={size}
     />
   );
@@ -210,6 +212,22 @@ export function App() {
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  useEffect(() => {
+    const receiptImages = [
+      "/assets/hotel-jonas.avif",
+      "/assets/hotel-maya.avif",
+      "/assets/taxi.avif",
+      "/assets/dinner.avif",
+      "/assets/flight.avif",
+    ];
+
+    receiptImages.forEach((src) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    });
   }, []);
 
   return (
@@ -470,7 +488,7 @@ function EvidenceView({ expense, zoom, onZoom }: { expense: ExpenseId; zoom: num
         </div>
         <picture className="invoice-picture" style={{ width: `${Math.min(96, zoom * 1.02)}%` }}>
           {document.avif && <source srcSet={document.avif} type="image/avif" />}
-          <img className="invoice invoice-main" src={document.image} alt={document.alt} />
+          <img className="invoice invoice-main" src={document.image} alt={document.alt} decoding="async" fetchPriority="high" />
         </picture>
       </div>
     </div>
@@ -633,13 +651,13 @@ function VerifiedExpenseCard({ title }: { title: string }) {
 
 function Progress({ stage = "findings" }: { stage?: "findings" | "decision" }) {
   return <div className={`progress progress--${stage}`} data-node-id="6144:4677">
-    <img aria-hidden="true" className="progress-connector progress-connector--left" src="/figma/progress/connector-left.svg" />
-    <img aria-hidden="true" className="progress-connector progress-connector--right" src="/figma/progress/connector-right.svg" />
+    <img aria-hidden="true" className="progress-connector progress-connector--left" src={getFigmaAsset("progress/connector-left")} />
+    <img aria-hidden="true" className="progress-connector progress-connector--right" src={getFigmaAsset("progress/connector-right")} />
 
     <div className="progress-step progress-step--review done">
       <i className="progress-icon">
         <span className="progress-icon-core">
-          <img aria-hidden="true" src="/figma/progress/review-evidence.svg" />
+          <img aria-hidden="true" src={getFigmaAsset("progress/review-evidence")} />
         </span>
       </i>
       <span>Review evidence</span>
@@ -648,7 +666,7 @@ function Progress({ stage = "findings" }: { stage?: "findings" | "decision" }) {
     <div className={`progress-step progress-step--resolve ${stage === "decision" ? "done" : "current"}`}>
       <i className="progress-icon">
         <span className="progress-icon-core">
-          <img aria-hidden="true" src={stage === "decision" ? "/figma/progress/review-evidence.svg" : "/figma/progress/resolve-findings.svg"} />
+          <img aria-hidden="true" src={getFigmaAsset(stage === "decision" ? "progress/review-evidence" : "progress/resolve-findings")} />
         </span>
       </i>
       <span>Resolve findings</span>
@@ -657,7 +675,7 @@ function Progress({ stage = "findings" }: { stage?: "findings" | "decision" }) {
     <div className={`progress-step progress-step--decision ${stage === "decision" ? "current" : "upcoming"}`}>
       <i className="progress-icon">
         <span className="progress-icon-core">
-          <img aria-hidden="true" src="/figma/progress/make-decision.svg" />
+          <img aria-hidden="true" src={getFigmaAsset("progress/make-decision")} />
         </span>
       </i>
       <span>Make decision</span>
@@ -723,14 +741,14 @@ function ComparisonOverlay({ onClose }: { onClose: () => void }) {
             <div className="compare-label"><span>Current claim</span><strong>Maya Chen · EXP-2841 · RGH-847362</strong></div>
             <picture>
               <source srcSet="/assets/hotel-maya.avif" type="image/avif" />
-              <img src="/assets/hotel-maya.png" alt="Current claim hotel invoice" />
+              <img src="/assets/hotel-maya.png" alt="Current claim hotel invoice" decoding="async" />
             </picture>
           </div>
           <div className="compare-document">
             <div className="compare-label"><span>Potential match</span><strong>Jonas Weber · EXP-2798 · RGH-847351</strong></div>
             <picture>
               <source srcSet="/assets/hotel-jonas.avif" type="image/avif" />
-              <img src="/assets/hotel-jonas.png" alt="Potential matching hotel invoice" />
+              <img src="/assets/hotel-jonas.png" alt="Potential matching hotel invoice" decoding="async" />
             </picture>
           </div>
           <div className="comparison-facts">
@@ -760,7 +778,7 @@ function ApprovedOverlay({ onNext }: { onNext: () => void }) {
   return (
     <div className="overlay approved-overlay">
       <section className="approved-modal">
-        <div className="approved-icon"><img src="/figma/success-icon.svg" alt="" /></div>
+        <div className="approved-icon"><img src={getFigmaAsset("success-icon")} alt="" /></div>
         <h1>Claim approved</h1>
         <p>RWF 1,722,000 is approved for reimbursement.<br />Maya has been notified of the policy adjustment.</p>
         <article>
