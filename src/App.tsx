@@ -81,6 +81,7 @@ const Check = iconComponent(CheckIcon);
 const ClipboardText = iconComponent(Ticket01Icon);
 const Copy = iconComponent(Copy01Icon);
 const CreditCard = iconComponent(CreditCardIcon);
+const Exchange = iconComponent(Exchange01Icon);
 const FilePdf = iconComponent(Pdf01Icon);
 const FileText = iconComponent(File01Icon);
 const ForkKnife = iconComponent(Restaurant01Icon);
@@ -88,6 +89,7 @@ const Funnel = iconComponent(FilterIcon);
 const House = iconComponent(Home01Icon);
 const Info = iconComponent(InformationCircleIcon);
 const MagnifyingGlass = iconComponent(Search01Icon);
+const Message = iconComponent(Message01Icon);
 const Minus = iconComponent(MinusSignIcon);
 const Plus = iconComponent(PlusSignIcon);
 const Scales = iconComponent(JusticeScale01Icon);
@@ -348,7 +350,7 @@ function Queue({ onOpen }: { onOpen: () => void }) {
               </span>
               <span className="claim-cell"><b>{row[2]}</b><small>{row[3]}</small></span>
               <span>{row[4]}</span>
-              <span className="mono">{row[5]}</span>
+              <span className="queue-amount">{row[5]}</span>
               <ReviewBadge value={row[6]} />
               <StatusBadge value={row[7]} />
             </button>
@@ -418,10 +420,10 @@ function ClaimHeader({ onBack }: { onBack: () => void }) {
     <header className="review-header">
       <div className="claim-nav">
         <div className="claim-controls">
-          <button onClick={onBack} aria-label="Back"><ArrowLeft size={16} /></button>
+          <button onClick={onBack} aria-label="Back"><ArrowLeft size={14} /></button>
           <span className="nav-pair">
-            <button aria-label="Previous claim"><CaretUp size={16} /></button>
-            <button aria-label="Next claim"><CaretDown size={16} /></button>
+            <button aria-label="Previous claim"><CaretUp size={14} /></button>
+            <button aria-label="Next claim"><CaretDown size={14} /></button>
           </span>
         </div>
         <span>23 of 138 claims</span>
@@ -430,7 +432,13 @@ function ClaimHeader({ onBack }: { onBack: () => void }) {
         <span className="claim-avatar">J</span>
         <div>
           <strong>Jean-Paul Habimana</strong>
-          <small><FigmaIcon name="scroll" size={11} /> Claim EXP-2841 · <FigmaIcon name="location" size={11} /> London workshop · 8–12 May 2026</small>
+          <small className="claim-metadata">
+            <span><FigmaIcon name="scroll" size={11} /> Claim EXP-2841</span>
+            <i>·</i>
+            <span><FigmaIcon name="location" size={11} /> London workshop</span>
+            <i>·</i>
+            <span>8–12 May 2026</span>
+          </small>
         </div>
       </div>
       <div className="requested"><span>Total requested</span><strong>RWF&nbsp; 1,747,200</strong></div>
@@ -623,8 +631,7 @@ function ReviewPanel({ selected, onNavigate }: { selected: ExpenseId; onNavigate
         {selected === "meal" && <FindingCard title="Policy exception" confidence="92% confidence" onClick={() => onNavigate("policy")}>
           <div className="policy-stats"><span>Submitted<b>RWF&nbsp; 95,200</b></span><span>Policy limit<b>RWF&nbsp; 70,000</b></span><span>Above limit<b>+RWF&nbsp; 25,200</b></span></div>
         </FindingCard>}
-        {selected === "taxi" && <VerifiedExpenseCard title="CityCab receipt verified" />}
-        {selected === "flight" && <VerifiedExpenseCard title="Lufthansa e-ticket verified" />}
+        {(selected === "taxi" || selected === "flight") && <VerifiedExpenseChecks />}
       </div>
       <footer>
         <FancyButton.Root variant="basic" onClick={() => onNavigate("clarify")}>Clarification</FancyButton.Root>
@@ -635,17 +642,13 @@ function ReviewPanel({ selected, onNavigate }: { selected: ExpenseId; onNavigate
   );
 }
 
-function VerifiedExpenseCard({ title }: { title: string }) {
+function VerifiedExpenseChecks() {
   return (
-    <article className="verified-expense-card">
-      <header><i><FigmaIcon name="check-square" size={18} /></i><div><strong>{title}</strong><span>No findings require attention</span></div></header>
-      <div>
-        <span><FigmaIcon name="status-secondary" size={12} /> Receipt data matched</span>
-        <span><FigmaIcon name="status-secondary" size={12} /> No duplicate found</span>
-        <span><FigmaIcon name="status-secondary" size={12} /> Policy requirements met</span>
-      </div>
-      <footer>All automated checks passed</footer>
-    </article>
+    <div className="verified-expense-checks" role="list" aria-label="Automated checks passed">
+      <span role="listitem"><FigmaIcon name="status-secondary" size={16} /> Receipt data matched</span>
+      <span role="listitem"><FigmaIcon name="status-secondary" size={16} /> No duplicate found</span>
+      <span role="listitem"><FigmaIcon name="status-secondary" size={16} /> Policy requirements met</span>
+    </div>
   );
 }
 
@@ -691,12 +694,34 @@ function FindingCard({ title, confidence, onClick, children }: { title: string; 
   </article>;
 }
 
+function ModalHeader({
+  icon: TitleIcon,
+  title,
+  titleId,
+  closeLabel,
+  onClose,
+}: {
+  icon: React.ComponentType<IconProps>;
+  title: string;
+  titleId?: string;
+  closeLabel: string;
+  onClose: () => void;
+}) {
+  return (
+    <header className="standard-modal-header">
+      <span className="standard-modal-icon"><TitleIcon size={18} /></span>
+      <h1 id={titleId}>{title}</h1>
+      <button className="clarification-close" aria-label={closeLabel} onClick={onClose}><X size={20} /></button>
+    </header>
+  );
+}
+
 function PolicyOverlay({ onClose }: { onClose: () => void }) {
   const [choice, setChoice] = useState("limit");
   return (
     <div className="overlay">
       <section className="policy-modal">
-        <header><span className="modal-title-icon"><FigmaIcon name="policy-title" size={22} /></span><h1>Meal allowance exceeded</h1><button onClick={onClose}><X size={22} /></button></header>
+        <ModalHeader icon={ForkKnife} title="Meal allowance exceeded" closeLabel="Close policy decision" onClose={onClose} />
         <div className="policy-body">
           <h2>Employee Context</h2>
           <div className="context-list">
@@ -735,7 +760,7 @@ function ComparisonOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div className="overlay">
       <section className="compare-modal">
-        <header><span className="modal-title-icon"><FigmaIcon name="compare-title" size={31} /></span><h1>Compare the supporting evidence</h1><button onClick={onClose}><X size={22} /></button></header>
+        <ModalHeader icon={Exchange} title="Compare supporting evidence" closeLabel="Close evidence comparison" onClose={onClose} />
         <main>
           <div className="compare-document">
             <div className="compare-label"><span>Current claim</span><strong>Maya Chen · EXP-2841 · RGH-847362</strong></div>
@@ -848,13 +873,7 @@ function ClarificationModal({ onClose, onReturn }: { onClose: () => void; onRetu
   return (
     <div className="overlay clarification-overlay">
       <section className="clarification-modal" role="dialog" aria-modal="true" aria-labelledby="clarification-title">
-        <header>
-          <div className="clarification-heading">
-            <h1 id="clarification-title">Request clarification</h1>
-            <p>Message to Jean-Paul Habimana · Claim EXP-2841</p>
-          </div>
-          <button className="clarification-close" aria-label="Close clarification request" onClick={onClose}><X size={20} /></button>
-        </header>
+        <ModalHeader icon={Message} title="Request clarification" titleId="clarification-title" closeLabel="Close clarification request" onClose={onClose} />
 
         <div className="clarification-modal-body">
           <article className="clarification-claim-context">
@@ -970,13 +989,7 @@ function DecisionModal({ onBack, onApprove, onReject }: { onBack: () => void; on
   return (
     <div className="overlay decision-overlay">
       <section className="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-title">
-        <header className="decision-modal-header">
-          <div className="clarification-heading">
-            <h1 id="decision-title">Review the final reimbursement</h1>
-            <p>Both findings have been assessed. Confirm the evidence and outcome before recording a decision.</p>
-          </div>
-          <button className="clarification-close" aria-label="Close final decision review" onClick={onBack}><X size={20} /></button>
-        </header>
+        <ModalHeader icon={Scales} title="Review final reimbursement" titleId="decision-title" closeLabel="Close final decision review" onClose={onBack} />
         <div className="decision-modal-body">
           <section className="decision-results">
             <h2>Review results</h2>
@@ -985,12 +998,11 @@ function DecisionModal({ onBack, onApprove, onReject }: { onBack: () => void; on
             <DecisionResult icon="check-square" title="Automated checks" detail="Identity, dates, currency, document quality, merchant, and totals" result="6 checks passed" passed />
           </section>
           <section className="reimbursement-summary">
-            <h2>Reimbursement</h2>
-            <div className="reimbursement-metrics">
+            <div className="reimbursement-values">
               <div><span>Submitted</span><strong>RWF&nbsp; 1,747,200</strong></div>
               <div><span>Excluded</span><strong className="negative">−RWF&nbsp; 25,200</strong></div>
+              <div className="final"><span>Final reimbursement</span><strong>RWF&nbsp; 1,722,000</strong></div>
             </div>
-            <div className="final-total"><span>Final reimbursement</span><strong>RWF&nbsp; 1,722,000</strong></div>
             <p><Info size={16} /> Jean-Paul will be notified of the policy adjustment.</p>
           </section>
           <label className="decision-acknowledgement">
@@ -1025,7 +1037,7 @@ function RejectOverlay({ onClose, onDone }: { onClose: () => void; onDone: () =>
   return (
     <div className="overlay">
       <section className="reject-modal">
-        <header><span><FigmaIcon name="receipt" size={20} /></span><h1>Reject claim</h1><button onClick={onClose}><X size={20} /></button></header>
+        <ModalHeader icon={ClipboardText} title="Reject claim" closeLabel="Close claim rejection" onClose={onClose} />
         <div className="reject-body">
           <p>Jean-Paul will see the rejection reason. The internal note remains visible only to reviewers.</p>
           <label className="flow-field">
