@@ -281,10 +281,10 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
   border-radius: 10px;
   color: #fff;
   font-family: "Certia", Inter, sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 20px;
-  letter-spacing: -.084px;
+  line-height: 16px;
+  letter-spacing: -.072px;
   white-space: nowrap;
   outline: none;
   transition: background-color .2s ease-out, color .2s ease-out, box-shadow .2s ease-out;
