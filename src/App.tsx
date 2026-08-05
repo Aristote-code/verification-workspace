@@ -7,7 +7,6 @@ import {
   BedDoubleIcon,
   Calendar01Icon,
   Cancel01Icon,
-  CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   Copy01Icon,
@@ -35,7 +34,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import * as FancyButton from "@/components/ui/fancy-button";
 import * as Dropdown from "@/components/ui/dropdown";
+import * as Checkbox from "@/components/ui/checkbox";
+import * as Input from "@/components/ui/input";
+import * as Radio from "@/components/ui/radio";
 import * as Select from "@/components/ui/select";
+import * as Textarea from "@/components/ui/textarea";
 import { Icon, type IconData } from "./components/Icon";
 import { getFigmaAsset } from "./figma-assets";
 
@@ -77,7 +80,6 @@ const CalendarBlank = iconComponent(Calendar01Icon);
 const CaretDown = iconComponent(ChevronDownIcon);
 const CaretRight = iconComponent(ArrowRight01Icon);
 const CaretUp = iconComponent(ChevronUpIcon);
-const Check = iconComponent(CheckIcon);
 const ClipboardText = iconComponent(Ticket01Icon);
 const Copy = iconComponent(Copy01Icon);
 const CreditCard = iconComponent(CreditCardIcon);
@@ -316,11 +318,13 @@ function Queue({ onOpen }: { onOpen: () => void }) {
           </div>
         </header>
         <div className="queue-toolbar">
-          <label className="search-control">
-            <FigmaIcon name="search" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Claims" />
-            <kbd>⌘</kbd><kbd>P</kbd>
-          </label>
+          <Input.Root className="search-control" size="small">
+            <Input.Wrapper>
+              <Input.Icon><FigmaIcon name="search" /></Input.Icon>
+              <Input.Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Claims" />
+            </Input.Wrapper>
+            <Input.Affix className="search-shortcut"><kbd>⌘</kbd><kbd>P</kbd></Input.Affix>
+          </Input.Root>
           <div className="queue-filters">
             <button className="control-button">
               <FigmaIcon name="status-filter" />
@@ -733,11 +737,11 @@ function PolicyOverlay({ onClose }: { onClose: () => void }) {
           <div className="amount-comparison"><span>Submitted<b>RWF&nbsp; 95,200</b></span><span>Policy limit<b>RWF&nbsp; 70,000</b></span><span>Difference<b>+RWF&nbsp; 25,200</b></span></div>
           <article className="policy-note"><FigmaIcon name="policy-file" size={24} /><div><strong>International evening meal allowance</strong><small>Effective 1 January 2026</small></div><button>View full policy</button><p>“Employees travelling internationally may claim up to RWF 70,000 per person for an evening meal. Documented business-hosting exceptions require reviewer justification.”</p></article>
           <h3>Reviewer decision</h3>
-          <div className="radio-list">
-            <Radio checked={choice === "limit"} onClick={() => setChoice("limit")} title="Reimburse policy limit only" detail="Approve RWF 70,000 and exclude RWF 25,200" />
-            <Radio checked={choice === "exception"} onClick={() => setChoice("exception")} title="Accept as a valid exception" detail="Reimburse the full RWF 95,200 with justification" />
-            <Radio checked={choice === "noncompliant"} onClick={() => setChoice("noncompliant")} title="Mark as noncompliant" detail="Exclude the full expense" />
-          </div>
+          <Radio.Group className="radio-list" value={choice} onValueChange={setChoice}>
+            <RadioOption value="limit" title="Reimburse policy limit only" detail="Approve RWF 70,000 and exclude RWF 25,200" />
+            <RadioOption value="exception" title="Accept as a valid exception" detail="Reimburse the full RWF 95,200 with justification" />
+            <RadioOption value="noncompliant" title="Mark as noncompliant" detail="Exclude the full expense" />
+          </Radio.Group>
         </div>
         <footer>
           <FancyButton.Root variant="basic">Request clarification</FancyButton.Root>
@@ -752,8 +756,14 @@ function ContextRow({ icon, label, value }: { icon: string; label: string; value
   return <div><i><FigmaIcon name={icon} size={16} /></i><b>{label}</b><span>{value}</span></div>;
 }
 
-function Radio({ checked, onClick, title, detail }: { checked: boolean; onClick: () => void; title: string; detail: string }) {
-  return <button className={checked ? "checked" : ""} onClick={onClick}><i>{checked && <FigmaIcon name="policy-radio" size={14} />}</i><span><strong>{title}</strong><small>{detail}</small></span></button>;
+function RadioOption({ value, title, detail }: { value: string; title: string; detail: string }) {
+  const id = `policy-${value}`;
+  return (
+    <label className="radio-option" htmlFor={id}>
+      <Radio.Item id={id} value={value} />
+      <span><strong>{title}</strong><small>{detail}</small></span>
+    </label>
+  );
 }
 
 function ComparisonOverlay({ onClose }: { onClose: () => void }) {
@@ -904,11 +914,14 @@ function ClarificationModal({ onClose, onReturn }: { onClose: () => void; onRetu
 
           <label className="flow-field clarification-message">
             <span>Message</span>
-            <textarea value={message} onChange={(event) => setMessage(event.target.value)} />
+            <Textarea.Root simple value={message} onChange={(event) => setMessage(event.target.value)} />
           </label>
 
           <div className="composer-controls">
-            <label className="flow-field"><span>Response due</span><input value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></label>
+            <div className="flow-field">
+              <span>Response due</span>
+              <Input.Root size="small"><Input.Wrapper><Input.Input aria-label="Response due" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /></Input.Wrapper></Input.Root>
+            </div>
             <button className="attachment-control"><FigmaIcon name="page" size={17} /> Add attachment</button>
           </div>
         </div>
@@ -1004,11 +1017,10 @@ function DecisionModal({ onBack, onApprove, onReject }: { onBack: () => void; on
             </div>
             <p><Info size={16} /> Jean-Paul will be notified of the policy adjustment.</p>
           </section>
-          <label className="decision-acknowledgement">
-            <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />
-            <i>{acknowledged && <Check size={13} />}</i>
-            <span>I have reviewed the supporting evidence and AI findings and am making this decision based on the available information.</span>
-          </label>
+          <div className="decision-acknowledgement">
+            <Checkbox.Root id="decision-acknowledged" checked={acknowledged} onCheckedChange={(checked) => setAcknowledged(checked === true)} />
+            <label htmlFor="decision-acknowledged">I have reviewed the supporting evidence and AI findings and am making this decision based on the available information.</label>
+          </div>
         </div>
         <footer className="decision-actions">
           <FancyButton.Root variant="destructive" onClick={onReject}>Reject claim</FancyButton.Root>
@@ -1053,7 +1065,7 @@ function RejectOverlay({ onClose, onDone }: { onClose: () => void; onDone: () =>
               </Select.Content>
             </Select.Root>
           </label>
-          <label className="flow-field"><span>Internal note</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add the evidence behind this decision" /></label>
+          <label className="flow-field"><span>Internal note</span><Textarea.Root simple value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add the evidence behind this decision" /></label>
         </div>
         <footer>
           <FancyButton.Root variant="basic" onClick={onClose}>Cancel</FancyButton.Root>

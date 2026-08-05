@@ -1,9 +1,7 @@
 // AlignUI Dropdown v1.2 — adapted to the Zemo CSS token layer.
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { CheckIcon } from "@hugeicons/core-free-icons";
-
-import { Icon } from "@/components/Icon";
+import * as Checkbox from "@/components/ui/checkbox";
 
 const DropdownRoot = DropdownMenuPrimitive.Root;
 const DropdownTrigger = DropdownMenuPrimitive.Trigger;
@@ -28,21 +26,18 @@ DropdownContent.displayName = "DropdownContent";
 const DropdownCheckboxItem = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.CheckboxItem>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
->(({ className, children, onSelect, ...rest }, forwardedRef) => (
+>(({ className, children, onSelect, checked, ...rest }, forwardedRef) => (
   <DropdownMenuPrimitive.CheckboxItem
     ref={forwardedRef}
     className={`align-dropdown-checkbox-item${className ? ` ${className}` : ""}`}
+    checked={checked}
     onSelect={(event) => {
       event.preventDefault();
       onSelect?.(event);
     }}
     {...rest}
   >
-    <span className="align-dropdown-checkbox" aria-hidden="true">
-      <DropdownMenuPrimitive.ItemIndicator>
-        <Icon icon={CheckIcon} size={13} strokeWidth={2} />
-      </DropdownMenuPrimitive.ItemIndicator>
-    </span>
+    <Checkbox.Visual />
     <span className="align-dropdown-checkbox-label">{children}</span>
   </DropdownMenuPrimitive.CheckboxItem>
 ));
