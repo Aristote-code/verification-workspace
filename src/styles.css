@@ -587,7 +587,15 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
 
 @media (max-width: 840px) {
   body { background: #f7f7f7; }
-  .app { padding-bottom: 64px; }
+  .app {
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    min-height: 100dvh;
+    padding-bottom: 64px;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
 
   .rail {
     position: fixed;
@@ -764,6 +772,8 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
   }
   .review-panel > footer .fancy-button { min-width: 150px; flex: 1; }
 
+  .progress { max-width: calc(100vw - 36px); }
+
   .overlay {
     position: fixed;
     align-items: flex-start;
@@ -847,6 +857,87 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
   .approved-modal article header b { font-size: 13px; }
   .approved-modal article > div { font-size: 11px; }
   .approved-modal article > div strong { font-size: 11px; }
+
+  .clarification-overlay,
+  .decision-overlay {
+    padding: 12px;
+    align-items: center;
+  }
+
+  .clarification-modal:not(.clarification-complete),
+  .decision-modal {
+    width: 100%;
+    height: calc(100dvh - 24px);
+    max-height: none;
+    overflow: hidden;
+    border-radius: 14px;
+  }
+
+  .clarification-modal-body,
+  .decision-modal-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .clarification-dropdown-grid,
+  .composer-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .clarification-message { flex: none; }
+  .clarification-message textarea { min-height: 220px; height: 220px; }
+
+  .clarification-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    background: #fff;
+  }
+
+  .clarification-footer > span { white-space: normal; }
+  .clarification-footer > div { width: 100%; }
+  .clarification-footer > div .fancy-button { min-width: 0; flex: 1; }
+
+  .clarification-complete {
+    width: min(100%, 620px);
+    min-height: 0;
+    max-height: calc(100dvh - 24px);
+    padding: 40px 24px 26px;
+    overflow-y: auto;
+    border-radius: 14px;
+  }
+
+  .clarification-complete h1 { font-size: 29px; line-height: 35px; }
+  .clarification-summary { margin-top: 26px; }
+
+  .decision-modal-body { flex: 1; }
+  .decision-modal > .decision-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
+    min-height: 0;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .decision-actions .fancy-button { width: 100%; min-width: 0; }
+  .decision-actions .fancy-button:last-child {
+    min-width: 0;
+    grid-column: 1 / -1;
+  }
+
+  .reject-modal {
+    width: calc(100% - 24px);
+    max-height: calc(100dvh - 24px);
+    margin: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .reject-body { min-height: 0; overflow-y: auto; }
+  .reject-modal > footer { flex: none; }
 }
 
 @media (max-width: 600px) {
@@ -905,6 +996,20 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
     align-items: start;
     padding-block: 8px;
   }
+  .details-content .detail-row {
+    min-height: 64px;
+    margin-bottom: 4px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-areas:
+      "icon label"
+      "icon value";
+    column-gap: 10px;
+    align-items: start;
+    padding-block: 8px;
+  }
+  .details-content .detail-row > i { grid-area: icon; }
+  .details-content .detail-row > b { grid-area: label; padding-top: 2px; }
+  .details-content .detail-row > div { grid-area: value; }
   .detail-row > i { grid-area: icon; }
   .detail-row > b { grid-area: label; padding-top: 2px; }
   .detail-row > div { grid-area: value; }
@@ -934,6 +1039,101 @@ button { padding: 0; color: inherit; background: transparent; border: 0; cursor:
   .approved-modal { padding-inline: 16px; }
   .approved-modal article header,
   .approved-modal article > div { gap: 16px; }
+
+  .standard-modal-header {
+    height: 62px;
+    min-height: 62px;
+    padding-inline: 16px;
+    gap: 10px;
+  }
+  .standard-modal-header h1 { font-size: 17px; line-height: 22px; }
+
+  .clarification-overlay,
+  .decision-overlay { padding: 0; }
+  .clarification-modal:not(.clarification-complete),
+  .decision-modal {
+    height: 100dvh;
+    border-width: 0;
+    border-radius: 0;
+  }
+
+  .clarification-modal-body,
+  .decision-modal-body { padding: 16px 14px; }
+  .clarification-modal-body { gap: 14px; }
+  .clarification-claim-context {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+  .clarification-claim-context > b {
+    grid-column: 2;
+    white-space: normal;
+  }
+  .clarification-message textarea { min-height: 205px; height: 205px; }
+  .clarification-footer { padding: 12px 14px; }
+  .clarification-footer > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .clarification-footer .clear-draft {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .clarification-complete {
+    width: calc(100% - 24px);
+    margin: 12px;
+    padding: 38px 18px 22px;
+  }
+  .clarification-success-icon { width: 66px; height: 66px; margin-bottom: 18px; }
+  .clarification-complete h1 { font-size: 27px; line-height: 32px; }
+  .clarification-summary { grid-template-columns: 1fr; }
+  .clarification-summary > span {
+    min-height: 62px;
+    border-right: 0;
+    border-bottom: 1px solid #dedfdc;
+  }
+  .clarification-summary > span:last-child { border-bottom: 0; }
+  .flow-complete-actions { grid-template-columns: 1fr; }
+
+  .decision-result {
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: start;
+  }
+  .decision-result > span {
+    grid-column: 2;
+    max-width: none;
+    text-align: left;
+  }
+  .reimbursement-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reimbursement-values > div { min-height: 74px; padding: 12px; }
+  .reimbursement-values > div:nth-child(2) { border-right: 0; }
+  .reimbursement-values .final {
+    grid-column: 1 / -1;
+    border-top: 1px solid #e4e5e6;
+  }
+  .decision-acknowledgement { align-items: flex-start; }
+  .decision-modal > .decision-actions { padding: 12px 14px; }
+
+  .reject-modal {
+    width: 100%;
+    max-height: 100dvh;
+    margin: auto 0 0;
+    border-radius: 14px 14px 0 0;
+  }
+  .reject-body { padding: 18px 16px 6px; }
+  .reject-modal > footer { padding: 14px 16px; }
+}
+
+@media (max-width: 400px) {
+  .progress {
+    width: 354px;
+    margin-top: 10px;
+    margin-bottom: 16px;
+    transform: scale(.88);
+    transform-origin: top center;
+  }
+  .review-panel > footer .fancy-button { min-width: 100%; }
+  .viewer-tools { gap: 7px; padding-inline: 9px; }
+  .viewer-tools button { font-size: 10px; }
 }
 
 @media (min-width: 841px) and (max-width: 1199px) {
